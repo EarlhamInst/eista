@@ -14,21 +14,47 @@ nextflow_pipeline {
             }
         }
 
-        // then {
-        //     assert workflow.success
-        // }
-
         then {
             assertAll(
                 { assert workflow.success },
                 { assert new File("$outputDir/vizgen/mtx_conversions/combined_st_matrix.h5ad").exists() },
+
                 { assert new File("$outputDir/qc_cell_filter/adata_filtered_normalized.h5ad").exists() },
+                { assert new File("$outputDir/qc_cell_filter/sample_summary.csv").exists() },
+                { assert new File("$outputDir/qc_cell_filter/parameters.json").exists() },
+                { assert new File("$outputDir/qc_cell_filter/raw_counts/sample_plant/scatter_counts_genes_volume.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/raw_counts/sample_plant/knee_plot.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/raw_counts/sample_plant/histograms.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/raw_counts/sample_plant/violin0_n_genes_by_counts.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/raw_counts/sample_plant/violin1_total_counts.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/raw_counts/sample_plant/violin2_volume.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/cell_filtering/sample_summary_filtered.csv").exists() },
+                { assert new File("$outputDir/qc_cell_filter/cell_filtering/highly_variable_genes.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/cell_filtering/sample_plant/spatial_scatter_total_counts_genes.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/cell_filtering/sample_plant/histograms.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/cell_filtering/sample_plant/umap_total_counts_genes.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/cell_filtering/sample_plant/violin0_n_genes_by_counts.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/cell_filtering/sample_plant/violin1_total_counts.png").exists() },
+                { assert new File("$outputDir/qc_cell_filter/cell_filtering/sample_plant/violin2_volume.png").exists() },
+
+                { assert new File("$outputDir/clustering/adata_clustering.h5ad").exists() },
+                { assert new File("$outputDir/clustering/parameters.json").exists() },
+                { assert new File("$outputDir/clustering/group_wheat/umap_leiden_res_0.50.png").exists() },
+                { assert new File("$outputDir/clustering/group_wheat/spatial_scatter_leiden_res_0.50.png").exists() },
+                { assert new File("$outputDir/clustering/resolution_0.50/prop_leiden_res_0.50.png").exists() },
+
                 { assert new File("$outputDir/spatialstats/parameters.json").exists() },
-                { assert new File("$outputDir/h5ad_mtx_meta/cells.csv").exists() },
-                { assert new File("$outputDir/h5ad_mtx_meta/genes.csv").exists() },
-                { assert new File("$outputDir/h5ad_mtx_meta/metadata.csv").exists() },
-                { assert new File("$outputDir/h5ad_mtx_meta/counts.mtx").exists() },
-                { assert new File("$outputDir/clustering/adata_clustering.h5ad").exists() }
+                { assert new File("$outputDir/spatialstats/group_wheat/autocorr_moranI.csv").exists() },
+                { assert new File("$outputDir/spatialstats/group_wheat/centrality_scores_leiden_res_0.70.png").exists() },
+                { assert new File("$outputDir/spatialstats/group_wheat/neighbors_enrichment_leiden_res_0.70.png").exists() },
+                { assert new File("$outputDir/spatialstats/group_wheat/spatial_scatter_bot_TraesCS2A02G376400.png").exists() },
+                { assert new File("$outputDir/spatialstats/group_wheat/spatial_scatter_closeness_high_leiden_res_0.70.png").exists() },
+                { assert new File("$outputDir/spatialstats/group_wheat/spatial_scatter_top_TraesCS1A02G418200.png").exists() },
+                { assert new File("$outputDir/spatialstats/group_wheat/spatial_scatter_degree_high_leiden_res_0.70.png").exists() },
+                { assert new File("$outputDir/spatialstats/group_wheat/spatial_scatter_clustering_high_leiden_res_0.70.png").exists() },
+
+                { assert new File("$outputDir/multiqc/multiqc_report.html").exists() },
+                { assert new File("$outputDir/report/eista_report.html").exists() }
             )
         }
 

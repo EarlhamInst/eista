@@ -1,3 +1,2 @@
-sample,data
-SAMPLE_1,/path/to/vizgen_data_1
-SAMPLE_2,/path/to/vizgen_data_2
+sample,data,group
+plant,/home/wuhh/data/vizgen/vizgen_test_data,wheat

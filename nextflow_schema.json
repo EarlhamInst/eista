@@ -60,6 +60,13 @@
                     "fa_icon": "fas fa-book",
                     "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
                 },
+                "igenomes_ignore": {
+                    "type": "boolean",
+                    "description": "Do not load the iGenomes reference config.",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true,
+                    "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                },
                 "fasta": {
                     "type": "string",
                     "format": "file-path",
@@ -68,14 +75,8 @@
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
                     "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
-                    "fa_icon": "far fa-file-code"
-                },
-                "igenomes_ignore": {
-                    "type": "boolean",
-                    "description": "Do not load the iGenomes reference config.",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                    "fa_icon": "far fa-file-code",
+                    "hidden": true
                 }
             }
         },
@@ -85,14 +86,6 @@
             "description": "",
             "default": "",
             "properties": {
-                "aligner": {
-                    "type": "string",
-                    "description": "Name of the tool to use for scRNA (pseudo-) alignment.",
-                    "default": "alevin",
-                    "help_text": "The workflow can handle three types of methods:\n\n- Kallisto/Bustools\n- Salmon + Alevin-fry + AlevinQC\n- STARsolo\n\nTo choose which one to use, please specify either `alevin`, `star` or `kallisto` as a parameter option for `--aligner`. By default, the pipeline runs the `alevin` option. Note that specifying another aligner option also requires choosing appropriate parameters (see below) for the selected option.",
-                    "fa_icon": "fas fa-align-center",
-                    "enum": ["kallisto", "star", "alevin"]
-                },
                 "technology": {
                     "type": "string",
                     "description": "The technology that was used to generate the spatial transcriptomics data",
@@ -121,11 +114,11 @@
                     "type": "string",
                     "description": "Flagged argument settings for the process of spatial statistics analysis."
                 },
-                "args_annotation ": {
+                "args_annotation": {
                     "type": "string",
                     "description": "Flagged argument settings for the process of cell-type annotation analysis, e.g. '--model Immune_All_Low.pkl'."
                 }, 
-                "args_trainctmodel ": {
+                "args_trainctmodel": {
                     "type": "string",
                     "description": "Flagged argument settings for the process of training CellTypist models, e.g. '--feature_selection'."
                 },
@@ -139,13 +132,15 @@
                 },        
                 "run_analyses": {
                     "type": "array",
+                    "items": { "type": "string" },
                     "description": "This is a internal parameter created from option --analyses",
-                    "default": ["primary", "secondary", "tertiary"]
+                    "hidden": true
                 },
                 "skip_analyses": {
                     "type": "array",
+                    "items": { "type": "string" },
                     "description": "This is a internal parameter created from option --skip",
-                    "default": [""]
+                    "hidden": true
                 },
                 "h5ad": {
                     "type": "string",
@@ -154,12 +149,19 @@
                     "format": "file-path",
                     "exists": true
                 },
-                "ctmodel": {
+                "segmentation_algorithm": {
                     "type": "string",
-                    "description": "CellTypist model file for cell-type annotation analysis",
-                    "fa_icon": "fas fa-file",
-                    "format": "file-path",
-                    "exists": true
+                    "description": "Path to a json file that fully specifies the segmentation algorithm to use, including algorithm name, any algorithm specific parameters, stains corresponding to each channel in the algorithm. Default is 'assets/algorithms/cellpose_default_1_ZLevel.json'."
+                },
+                "tile_size": {
+                    "type": "integer",
+                    "default": 2400,
+                    "description": "Number of pixels for the width and height of each tile. Each tile is created as a square."
+                },
+                "tile_overlap": {
+                    "type": "integer",
+                    "default": 200,
+                    "description": "Overlap between adjacent tiles. Default is 10% of tile-size."
                 }
             }
         },
@@ -373,6 +375,9 @@
             "$ref": "#/definitions/reference_genome_options"
         },
         {
+            "$ref": "#/definitions/analysis_options"
+        },
+        {
             "$ref": "#/definitions/institutional_config_options"
         },
         {
@@ -381,25 +386,6 @@
         {
             "$ref": "#/definitions/generic_options"
         }
-    ],
-    "properties": {
-        "boundaries": {
-            "type": "string"
-        },
-        "segmentation_algorithm": {
-            "type": "string"
-        },
-        "tile_size": {
-            "type": "integer",
-            "default": 2400
-        },
-        "tile_overlap": {
-            "type": "integer",
-            "default": 200
-        },
-        "vzg_file": {
-            "type": "string",
-            "format": "file-path"
-        }
-    }
+    ]
+
 }

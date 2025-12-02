@@ -56,6 +56,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - `adata_filtered_normalized.h5ad`: AnnData object file after cell filtering and normalization
 - `raw_counts/sample_*/`
   - `scatter_counts_genes_volume.png`: scatter plot shows the relationship between total read counts and the number of genes.
+  - `knee_plot.png`: knee plot shows the relationship between cell segmentation rank and total transcript count per cell segmentation.
   - `violin*.png`: violin plots display the distribution of cells based on the number of genes, total counts, and cell volumes.
   - `histograms.png`: histogram plots display the distribution of cells based on the number of genes, total counts, and cell volumes. 
 - `cell_filtering/`

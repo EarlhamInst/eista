@@ -13,7 +13,6 @@ import argparse
 import sys
 from pathlib import Path
 import spatialdata as sd
-from spatialdata_io import xenium
 import util
 
 logger = util.get_named_logger('SPATIAL_TO_H5AD')
@@ -89,6 +88,7 @@ def main(argv=None):
             transformation_file=str(args.transformation) if args.transformation.is_file() else None,
         )
     elif args.tech == 'xenium':
+        from spatialdata_io import xenium
         xenium_path = args.datadir
         sdata = xenium(xenium_path)
         adata = sdata.tables["table"]

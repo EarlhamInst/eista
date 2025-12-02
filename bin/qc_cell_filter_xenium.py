@@ -240,6 +240,21 @@ def main(argv=None):
             if args.pdf:
                 plt.savefig(Path(path_sample, 'scatter_counts_genes_area.pdf'), bbox_inches="tight")
 
+        with plt.rc_context():
+            counts = np.sort(adata_s.obs["total_counts"])[::-1]
+            ranks = np.arange(1, len(counts) + 1)
+            plt.figure(figsize=(6, 5))
+            plt.plot(ranks, counts, lw=2)
+            plt.xscale("log") #base-10 logarithm
+            plt.yscale("log")
+            plt.xlabel("Cell segmentation rank")
+            plt.ylabel("Total counts (transcript frequency)")
+            plt.title("Knee plot")
+            plt.grid(True, which="both", lw=0.2)
+            plt.savefig(Path(path_sample, 'knee_plot.png'), bbox_inches="tight")
+            if args.pdf:
+                plt.savefig(Path(path_sample, 'knee_plot.pdf'), bbox_inches="tight")
+
         # violin plots for n_genes_by_counts, total_counts, area
         path_sample = Path(path_quant_qc_raw, f"sample_{sid}")
         util.check_and_create_folder(path_sample)

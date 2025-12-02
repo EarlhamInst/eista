@@ -178,6 +178,10 @@ def main(argv=None):
             html.p(f"""The following scatter plot shows the relationship between total 
                    read counts and the number of genes, with the {cell_size_unit} of segmented cells indicated by color.""")
             plots_from_image_files(path_quant_qc_raw, meta='sample', widths=['800'], suffix=['scatter*.png'])
+            html.p("""The following scatter plot shows the relationship between cell segmentation rank and 
+                   total number of transcripts per barcode. The inflection (knee) point where the transcript 
+                   frequency rapidly drops can be good cutoff to remove empty cell segmentation.""")
+            plots_from_image_files(path_quant_qc_raw, meta='sample', widths=['500'], suffix=['knee_plot.png'])
             html.p(f"""The following violin plots display the distribution of cells based on the number of 
                    genes, total counts, and cell {cell_size_unit}s.""")
             plots_from_image_files(path_quant_qc_raw, meta='sample', ncol=3, suffix=['violin*.png'])
@@ -310,14 +314,14 @@ def main(argv=None):
             classifying different cell types and subtypes.""")
             html.p("""The following UMAP plots show the predicted cell-type clusters and the mapped 
             confidence scores of the cells.""")            
-            plots_from_image_files(path_annotation, suffix=['umap_cell_type.png'], meta=batch, widths=['900'])
+            plots_from_image_files(path_annotation, suffix=['umap_cell_type.png'], meta=batch, widths=['1200'])
             plots_from_image_files(path_annotation, suffix=['umap_conf_score.png'], meta=batch, widths=['600'])
             html.p("""The following spatial scatter plot shows how cell-types are spatially mapped onto the tissue morphology.""") 
             plots_from_image_files(path_annotation, suffix=['spatial_scatter_*.png'], meta=batch, widths=['1000'])
             html.p(f"""The following plot shows a stacked bar chart that presents the proportions 
                    of cell-type clusters across {batch}s. The plot illustrates the distribution 
                    profiles of predicted cell-type clusters between {batch}s.""")                   
-            plots_from_image_files(path_annotation, suffix=['prop_*.png'], widths=[str(min(Nbatch*330, 1200))])
+            plots_from_image_files(path_annotation, suffix=['prop_*.png'], widths=[str(min(Nbatch*500, 1200))])
             show_analysis_parameters(f"{path_annotation}/parameters.json")                 
     else:
         logger.info('Skipping cell-type annotation')   
