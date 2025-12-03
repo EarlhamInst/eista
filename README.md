@@ -19,14 +19,23 @@
 
 ## Introduction
 
-**nf-core/eista** is a bioinformatics pipeline that perform analysis for single-cell spatial transcriptomics data (Vizgen data and 10x Xenium data). The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes (implemented and to be implemented) are as follows:
+**nf-core/eista** is a bioinformatics pipeline that perform analysis for single-cell spatial transcriptomics data (Vizgen data and 10x Xenium data). The pipeline is built using [Nextflow](https://www.nextflow.io/). The pipeline was developed
+as a generalized, flexible, and scalable workflow for spatial transcriptomics analysis. It is primarily designed for Vizgen MERFISH data and 10x Xenium data. The pipeline can be applied from multiple starting points, either from raw
+image data or processed AnnData for the specified analysis phase.
 
+![nf-core/eisca metro map](docs/images/eista_pipeline_graph.png)
+
+The modules of the pipeline are listed as follows:
 - **Primary analysis**
-  - Cell segmentation - defines cell boundaries from images 
-  - Partition transcripts - determine which cell contains each detected transcript
-  - Calculate cell metadata - calculate the geometric attributes of each cell
-  - Sum signals - find the intensity of each mosaic image in each cell
-  - Update vzg - Updates an existing .vzg file with new segmentation boundaries and expression matrix
+  - Vizgen Post-processing Tool which including following processes:
+    - Cell segmentation - defines cell boundaries from images 
+    - Partition transcripts - determine which cell contains each detected transcript
+    - Calculate cell metadata - calculate the geometric attributes of each cell
+    - Sum signals - find the intensity of each mosaic image in each cell
+    - Update vzg - Updates an existing .vzg file with new segmentation boundaries and expression matrix
+  - MTX conversion - Converting the Vizgen/Xenium matrixes into Anndata objects 
+  - CONCAT counts - Concatenating input Anndata objects into one Anndata object
+  and combine them into one Anndata object
 - **Secondary analysis**
   - QC & cell filtering - cell filtering and QC on raw data and filtered data
   - Clustering analysis - single-cell clustering analysis
