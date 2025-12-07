@@ -171,7 +171,7 @@ workflow EISTA {
 
     //===================================== Tertiary anaysis stage =====================================
 
-    if (!params.run_analyses.intersect(['tertiary', 'annotation', 'dea', 'cellchat']).isEmpty()){
+    if (params.run_analyses.any{ it in ['tertiary', 'annotation', 'dea', 'cellchat'] }){
     
         // Get input h5ad file
         ch_h5ad = Channel.empty()
@@ -187,7 +187,7 @@ workflow EISTA {
             path1 = "${params.outdir}/clustering/adata_clustering.h5ad"
             path2 = "${params.outdir}/qc_cell_filter/adata_filtered_normalized.h5ad"
             path3 = "${params.outdir}/annotation/adata_annotation.h5ad"
-            if(params.run_analyses.intersect(['dea', 'cellchat']) && (new File(path3).exists())){
+            if(params.run_analyses.any{it in ['dea', 'cellchat']} && (new File(path3).exists())){
                 ch_h5ad = Channel.fromPath(path3)           
             }else if(new File(path1).exists()){
                 ch_h5ad = Channel.fromPath(path1)
