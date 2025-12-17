@@ -19,7 +19,7 @@
 
 ## Introduction
 
-**nf-core/eista** is a bioinformatics pipeline that performs analysis for single-cell spatial transcriptomics data (Vizgen data and 10x Xenium data). The pipeline is built using [Nextflow](https://www.nextflow.io/). The pipeline was developed
+**EarlhamInst/eista** is a bioinformatics pipeline that performs analysis for single-cell spatial transcriptomics data (Vizgen data and 10x Xenium data). The pipeline is built using [Nextflow](https://www.nextflow.io/). The pipeline was developed
 as a generalized, flexible, and scalable workflow for spatial transcriptomics analysis. It is primarily designed for Vizgen MERFISH data and 10x Xenium data. The pipeline can be applied from multiple starting points, either from raw
 image data or processed AnnData for the specified analysis phase.
 
