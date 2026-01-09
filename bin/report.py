@@ -178,7 +178,7 @@ def main(argv=None):
             html.p(f"""The following scatter plot shows the relationship between total 
                    read counts and the number of genes, with the {cell_size_unit} of segmented cells indicated by color.""")
             plots_from_image_files(path_quant_qc_raw, meta='sample', widths=['800'], suffix=['scatter*.png'])
-            html.p("""The following scatter plot shows the relationship between cell segmentation rank and 
+            html.p("""The following knee plot shows the relationship between cell segmentation rank and 
                    total number of transcripts per barcode. The inflection (knee) point where the transcript 
                    frequency rapidly drops can be good cutoff to remove empty cell segmentation.""")
             plots_from_image_files(path_quant_qc_raw, meta='sample', widths=['500'], suffix=['knee_plot.png'])
