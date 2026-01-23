@@ -297,16 +297,20 @@ def main(argv=None):
             sc.pp.filter_cells(adata_s, max_genes=args.max_genes)
         if args.max_counts > 0:
             sc.pp.filter_cells(adata_s, max_counts=args.max_counts)
-        if args.min_area > 0:
-            adata_s = adata_s[adata_s.obs.cell_area.values > args.min_area]
-        if args.max_area > 0:
-            adata_s = adata_s[adata_s.obs.cell_area.values < args.max_area]
 
-        elif args.iqr_coef > 0:
+        sc.pp.calculate_qc_metrics(adata_s, inplace=True)
+
+        if args.iqr_coef > 0:
             q1 = np.percentile(adata_s.obs.total_counts.values, 25)
             q3 = np.percentile(adata_s.obs.total_counts.values, 75)
             upper_fence = q3 + args.iqr_coef*(q3 - q1)
             sc.pp.filter_cells(adata_s, max_counts=upper_fence)
+            sc.pp.calculate_qc_metrics(adata_s, inplace=True)
+
+        if args.min_area > 0:
+            adata_s = adata_s[adata_s.obs.cell_area.values > args.min_area]
+        if args.max_area > 0:
+            adata_s = adata_s[adata_s.obs.cell_area.values < args.max_area]
 
         if args.quantile_upper < 1:
             upper_lim = np.quantile(adata_s.obs.n_genes_by_counts.values, args.quantile_upper)
