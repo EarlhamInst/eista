@@ -58,7 +58,19 @@ def parse_args(argv=None):
         "--scale",
         help="Whether to scale the expression to have zero mean and unit variance.",
         action='store_true',
-    )        
+    )
+    parser.add_argument(
+        "--n_comps",
+        type=int,
+        help="Set the number of components for PCA dimensionality reduction.",
+        default=50,
+    )
+    parser.add_argument(
+        "--n_neighbors",
+        type=int,
+        help="Set the number of neighbors for nearest neighbor graph constuction.",
+        default=15,
+    )     
     parser.add_argument(
         "--resolutions",
         type=util.floatlist,
@@ -70,6 +82,12 @@ def parse_args(argv=None):
         default=None,
         choices=['bbknn', 'harmony', 'scanorama'],
         help="Choose a method for data integration",
+    )
+    parser.add_argument(
+        "--min_cluster_size",
+        type=int,
+        help="Set minimal cluster size for filtering out small clusters.",
+        default=0,
     )
     parser.add_argument(
         "--meta",
@@ -161,7 +179,8 @@ def main(argv=None):
         sc.pp.scale(adata, max_value=10)
 
     # Dimensionality reduction
-    n_comps = min((min(adata.X.shape)-1), 50)
+    # n_comps = min((min(adata.X.shape)-1), args.n_comps)
+    n_comps = min((min(adata.X[:, adata.var["highly_variable"].values].shape)-1), 50)
     sc.tl.pca(
         adata, 
         n_comps=n_comps, 
@@ -198,7 +217,7 @@ def main(argv=None):
     if args.integrate != 'bbknn':
         sc.pp.neighbors(
             adata, 
-            n_neighbors=15, 
+            n_neighbors=args.n_neighbors, 
             n_pcs=n_pcs,
             knn=True, 
             method='umap', 
@@ -213,6 +232,19 @@ def main(argv=None):
             adata, n_iterations=2, 
             key_added=f"leiden_res_{res:4.2f}", resolution=res
         )
+
+    # Filter Out Small Clusters
+    if args.min_cells_threshold > 0:
+        res_columns = [f"leiden_res_{res:4.2f}" for res in args.resolutions]
+        keep_mask = np.array([True] * adata.n_obs)
+        for col in res_columns:
+            if col in adata.obs.columns:
+                counts = adata.obs[col].value_counts()
+                small_clusters = counts[counts < args.min_cells_threshold].index.tolist()
+                is_in_small_cluster = adata.obs[col].isin(small_clusters)
+                keep_mask = keep_mask & (~is_in_small_cluster)
+        adata = adata[keep_mask].copy()
+
 
     # save the AnnData into a h5ad file 
     adata.write_h5ad(Path(path_clustering, 'adata_clustering.h5ad'))
@@ -264,8 +296,11 @@ def main(argv=None):
     with open(Path(path_clustering, 'parameters.json'), 'w') as file:
         params = {}
         params.update({"--h5ad": str(args.h5ad)})        
+        params.update({"--n_comps": args.n_comps})        
+        params.update({"--n_neighbors": args.n_neighbors})        
         params.update({"--resolutions": args.resolutions})        
-        if args.integrate: params.update({"--integrate": args.integrate})        
+        if args.integrate: params.update({"--integrate": args.integrate})
+        if args.min_cluster_size > 0: params.update({"--min_cluster_size": args.min_cluster_size})    
         params.update({"--meta": args.meta})        
         if args.normalize: params.update({"--normalize": args.normalize})
         if args.regress: params.update({"--regress": args.regress})
