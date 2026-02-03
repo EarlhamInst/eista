@@ -186,13 +186,13 @@ def main(argv=None):
 
     # Dimensionality reduction
     # n_comps = min((min(adata.X.shape)-1), args.n_comps)
-    n_comps = min((min(adata.X[:, adata.var["highly_variable"].values].shape)-1), 50)
+    n_comps = min((min(adata.X[:, adata.var["highly_variable"].values].shape)-1), args.n_comps)
     sc.tl.pca(
         adata, 
-        n_comps=n_comps, 
-        chunked=False,
-        zero_center=False, 
-        svd_solver='arpack'
+        n_comps=n_comps
+        # chunked=False,
+        # zero_center=False, 
+        # svd_solver='arpack'
     )
 
     # perform data integration
@@ -210,6 +210,10 @@ def main(argv=None):
     if args.integrate == 'bbknn':
         sc.external.pp.bbknn(adata, batch_key=batch_key, n_pcs=n_pcs)
     elif args.integrate == 'harmony':
+        mask = ~np.isnan(adata.obsm["X_pca"]).any(axis=1)
+        if not np.all(mask):
+            logger.warning(f"Removing {np.sum(~mask)} cells with NaN PCA embeddings before Harmony.")
+            adata = adata[mask].copy()
         sc.external.pp.harmony_integrate(adata, batch_key)
     elif args.integrate == 'scanorama':
         sc.external.pp.scanorama_integrate(adata, batch_key)

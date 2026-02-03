@@ -47,7 +47,7 @@ def parse_args(argv=None):
     )
     parser.add_argument(
         "--groups",
-        default='all',
+        default=None,
         help="Specify a subset of groups, e.g. 'group1,group2'.",
     )
     parser.add_argument(
@@ -153,7 +153,7 @@ def main(argv=None):
     
     # differential expression analysis
     if groupby == 'group': # between conditions
-        if groups == 'all':
+        if groups == None:
             groups = list(adata.obs['group'].unique())
             groups.remove(args.reference)
 
@@ -197,7 +197,20 @@ def main(argv=None):
                     sc.get.rank_genes_groups_df(adata_s, group=gid).to_csv(
                         Path(path_analysis_s, f'dea_group_{gid}_vs_{args.reference}.csv'), 
                         index=False,
-                    )                            
+                    )
+    
+                for gene in adata_s.uns["rank_genes_groups"]["names"][gid][:args.n_genes_s]:
+                    with plt.rc_context():
+                        sq.pl.spatial_scatter(
+                            adata_s,
+                            shape=None,
+                            color=gene,
+                            title=f"{celltype}-{}-{gene}"
+                        )
+                        plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.png"), bbox_inches="tight")
+                        if args.pdf:
+                            plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.pdf"), bbox_inches="tight")    
+
         else: # DEA between conditions for all cells
             sc.tl.rank_genes_groups(
                 adata, 
