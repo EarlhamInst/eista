@@ -62,7 +62,7 @@ The pipeline wutest has following parameters:
 | ----------- | ----------- |
 | --input  \<samplesheet.csv> | Input samplesheet file in CSV format |
 | --outdir \<directory> | Specify a output directory |
-| --analyses | Specify analysis phases in the pipeline. There are three analysis phases (see detailed explanation below): primary, secondary, and tertiary. Multiple phases can be applied and should be separated by commas. By default all analysis phases are applied and set as "primary,secondary,tertiary".   |
+| --analyses \<string> | Specify the analysis phases in the pipeline. There are three analysis phases (see detailed explanations below): primary, secondary, and tertiary. By default, all analysis phases are enabled and set to "primary,secondary,tertiary". You may run the pipeline phase by phase to perform exploratory analyses. In addition, you can execute specific analyses within the secondary and tertiary phases. You can also regenerate the analysis report by setting "report". |
 | --skip \<string> | To skip one or multiple analyses, you can specify a set of analysis names separated by commas. e.g. "--skip spatialstats" |
 | -profile \<config profile> | Specify a config profile to run the pipeline, which can be docker, singularity and conda |
 | --technology \<string> | Technology for generating spatial transcriptomics data. (default: vizgen) |
@@ -92,6 +92,7 @@ The pipline has 3 analysis phases:
 3. **tertiary phase** inculdes analyses:    
    - Cell type annotation
    - Differential expression analysis
+   - Cell-cell communication analysis
    - Other downstream analyses (To be implemented)
 
 
@@ -207,8 +208,8 @@ Users can set the options for differential analysis in the parameter `--args_dea
 | --method  \<['t-test', 'wilcoxon', 'logreg', 't-test_overestim_var']> | Choose a test method for differential expression anlaysis. The default method is 't-test', 't-test_overestim_var' overestimates variance of each group, 'wilcoxon' uses Wilcoxon rank-sum, 'logreg' uses logistic regression. (default='t-test')|
 | --n_genes  \<int> | Number of top marker genes to show in plots. (default=20) |
 | --n_genes_s  \<int> | Number of top marker genes to show in spatial scatter plots. (default=2) |
-| --celltype_col \<string> | Spcecify a column of the observation table to define cell-types, and DEA will be performed between groups for each cell-type. |
-| --celltypes \<string> | Spcecify a subset of cell-types for DEA between groups, e.g. 'celltype1,celltype2'. By default all cell-types are used. (default='all') |
+| --celltype_col \<string> | Spcecify a column of the observation table to define cell-types, and DEA will be performed between groups for each cell-type. (default=None) |
+| --celltypes \<string> | Spcecify a subset of cell-types for DEA between groups, e.g. 'celltype1,celltype2'. By default all cell-types are used. (default=None) |
 | --meta  \<[auto, sample, group]> | Choose a metadata column as the batch classes on which the clustering UMAPs will be displayed. By default, it is set to 'auto', which means it will use the 'group' column as the batch classes if 'group' is defined in the samplesheet file; otherwise, it will use the 'sample' column. |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|

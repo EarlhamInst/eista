@@ -328,37 +328,67 @@ def main(argv=None):
 
 
     if path_dea.exists():
-        if util.check_file(f"{path_dea}/sample_*", ''):
-            batch = 'sample'
-        elif util.check_file(f"{path_dea}/group_*", ''):
-            batch = 'group'        
+        path_dea_markers = Path(path_dea, 'markers')
+        path_dea_compare = Path(path_dea, 'compare')
+        path_dea_compare_ct = Path(path_dea, 'compare_ct')
         with report.add_section('Differential expression analysis', 'DEA'):
-            html.p("""This section presents the results of the differentially expression analysis using Scanpy's 
-                   rank_genes_groups function. These results allow users to identify marker genes by comparing 
-                   the ranked genes of one cluster against all others, as well as to explore differentially 
-                   expressed genes between two conditions.""")
+            if path_dea_markers.exists():
+                if util.check_file(f"{path_dea_markers}/sample_*", ''):
+                    batch = 'sample'
+                elif util.check_file(f"{path_dea_markers}/group_*", ''):
+                    batch = 'group'                
+                html.p("""This section presents the results of the differential expression analysis performed using 
+                        Scanpy’s rank_genes_groups function. These results enable the identification of marker genes 
+                        by comparing genes that are highly ranked in one cluster against all other clusters.""")
 
-            # showing plots for DEA between conditions for all cells
-            if util.check_file(f"{path_dea}", '*.png'):
-                html.p("""The following plots show differentially expressed genes between the two conditions.""")                        
-                plots_from_image_files(path_dea, suffix=['plot_genes_*.png'])
-                plots_from_image_files(path_dea, suffix=['dotplot_genes_*.png'])
+                # showing plots for one cluster vs rest for each sample/group
+                if util.check_file(f"{path_dea_markers}/{batch}_*", '*.png'):
+                    html.p(f"""The following plots display the ranking of genes for one of the cell clusters against the rest of the clusters across {batch}s.""")                        
+                    plots_from_image_files(path_dea_markers, meta=batch, suffix=['plot_genes_*.png'])
+                    plots_from_image_files(path_dea_markers, meta=batch, suffix=['dotplot_genes_*.png'])
+                    html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
+                    plots_from_image_files(path_dea_markers, meta=batch, ncol=4, suffix=['spatial_scatter_*.png'])
 
-            # showing plots for DEA between conditions for each celltype
-            if util.check_file(f"{path_dea}/celltype_*", '*.png'):
-                html.p("""The following plots show differentially expressed genes between two conditions across various cell types/clusters.""")                        
-                plots_from_image_files(path_dea, meta='celltype', suffix=['plot_genes_*.png'])
-                plots_from_image_files(path_dea, meta='celltype', suffix=['dotplot_genes_*.png'])
+                show_analysis_parameters(f"{path_dea_markers}/parameters.json")
+                if path_dea_compare.exists() or path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")
 
-            # showing plots for one cluster vs rest for each sample/group
-            if util.check_file(f"{path_dea}/{batch}_*", '*.png'):
-                html.p(f"""The following plots display the ranking of genes for one of the cell clusters against the rest of the clusters across {batch}s.""")                        
-                plots_from_image_files(path_dea, meta=batch, suffix=['plot_genes_*.png'])
-                plots_from_image_files(path_dea, meta=batch, suffix=['dotplot_genes_*.png'])
-                html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
-                plots_from_image_files(path_dea, meta=batch, ncol=4, suffix=['spatial_scatter_*.png'])
+            if path_dea_compare.exists():       
+                html.p("""This section presents the results of the differential expression analysis performed using 
+                        Scanpy’s rank_genes_groups function. The analysis identifies differentially expressed genes at 
+                        the cellular level by comparing one group of cells against another across all cells.""")
 
-            show_analysis_parameters(f"{path_dea}/parameters.json")                 
+                # showing plots for DEA between conditions for all cells
+                if util.check_file(f"{path_dea_compare}", '*.png'):
+                    html.p("""The following plots show the ranking of differentially expressed genes of one group of 
+                            cells against another.""")                        
+                    plots_from_image_files(path_dea_compare, suffix=['plot_genes_*.png'])
+                    html.div(style="height: 50px;")
+                    plots_from_image_files(path_dea_compare, suffix=['dotplot_genes_*.png'])
+                    html.div(style="height: 50px;")
+                    html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
+                    plots_from_image_files(path_dea_compare, ncol=4, suffix=['spatial_scatter_*.png'])
+
+                show_analysis_parameters(f"{path_dea_compare}/parameters.json")
+                if path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")
+
+            if path_dea_compare_ct.exists():
+                if util.check_file(f"{path_dea_compare_ct}/sample_*", ''):
+                    batch = 'sample'
+                elif util.check_file(f"{path_dea_compare_ct}/group_*", ''):
+                    batch = 'group'        
+                html.p("""This section presents the results of the differential expression analysis performed using 
+                        Scanpy’s rank_genes_groups function. The analysis identifies differentially expressed genes at 
+                        the cellular level by comparing one group of cells against another across cell types/clusters.""")
+
+                # showing plots for DEA between conditions for each celltype
+                if util.check_file(f"{path_dea_compare_ct}/celltype_*", '*.png'):
+                    html.p("""The following plots show differentially expressed genes between two conditions across cell types/clusters.""")                        
+                    plots_from_image_files(path_dea_compare_ct, meta='celltype', suffix=['plot_genes_*.png'])
+                    plots_from_image_files(path_dea_compare_ct, meta='celltype', suffix=['dotplot_genes_*.png'])
+                    html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
+                    plots_from_image_files(path_dea_compare_ct, meta='celltype', ncol=4, suffix=['spatial_scatter_*.png'])
+
+                show_analysis_parameters(f"{path_dea_compare_ct}/parameters.json")              
     else:
         logger.info('Skipping differential expression analysis')
 

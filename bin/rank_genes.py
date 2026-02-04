@@ -47,7 +47,7 @@ def parse_args(argv=None):
     )
     parser.add_argument(
         "--groups",
-        default=None,
+        default='all',
         help="Specify a subset of groups, e.g. 'group1,group2'.",
     )
     parser.add_argument(
@@ -86,7 +86,7 @@ def parse_args(argv=None):
     )
     parser.add_argument(
         "--celltypes",
-        default='all',
+        default=None,
         help="Spcecify a list cell-types for DEA between groups, e.g. 'celltype1,celltype2'.",
     )
     parser.add_argument(
@@ -138,7 +138,7 @@ def main(argv=None):
             logger.error(f"Please specify a observation column for grouping!")
             sys.exit(2)
 
-    groups = args.groups.split(',') if args.groups != 'all' else 'all'
+    groups = args.groups.split(',') if args.groups!='all' else None
 
     if args.meta == 'auto':
         # batch = 'group' if hasattr(adata.obs, 'group') else 'sample'
@@ -158,7 +158,9 @@ def main(argv=None):
             groups.remove(args.reference)
 
         if args.celltype_col: # DEA between conditions for each celltype
-            celltypes = sorted(adata.obs[args.celltype_col].unique()) if args.celltypes == 'all' else args.celltypes.split(',')
+            celltypes = sorted(adata.obs[args.celltype_col].unique()) if args.celltypes==None else args.celltypes.split(',')
+            # path_analysis = Path(path_analysis, 'compare_ct')
+            # util.check_and_create_folder(path_analysis)
             for celltype in celltypes:
                 adata_s = adata[adata.obs[args.celltype_col]==celltype]   
                 path_analysis_s = Path(path_analysis, f"celltype_{celltype}".replace(' ', '_').replace('/', '_'))
@@ -176,7 +178,7 @@ def main(argv=None):
                         adata_s, 
                         n_genes=args.n_genes, 
                         sharey=True,
-                        groups=groups if groups!='all' else None,
+                        groups=groups,
                         fontsize=13,
                     )
                     plt.savefig(Path(path_analysis_s, f"plot_genes_group_{args.reference}.png"), bbox_inches="tight")
@@ -187,7 +189,7 @@ def main(argv=None):
                     sc.pl.rank_genes_groups_dotplot(
                         adata_s, 
                         n_genes=args.n_genes, 
-                        groups=groups if groups!='all' else None,
+                        groups=groups,
                     )
                     plt.savefig(Path(path_analysis_s, f"dotplot_genes_group_{args.reference}.png"), bbox_inches="tight")
                     if args.pdf:
@@ -198,20 +200,34 @@ def main(argv=None):
                         Path(path_analysis_s, f'dea_group_{gid}_vs_{args.reference}.csv'), 
                         index=False,
                     )
-    
-                for gene in adata_s.uns["rank_genes_groups"]["names"][gid][:args.n_genes_s]:
-                    with plt.rc_context():
-                        sq.pl.spatial_scatter(
-                            adata_s,
-                            shape=None,
-                            color=gene,
-                            title=f"{celltype}-{}-{gene}"
-                        )
-                        plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.png"), bbox_inches="tight")
-                        if args.pdf:
-                            plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.pdf"), bbox_inches="tight")    
+
+                for gid in groups:
+                    for gene in adata_s.uns["rank_genes_groups"]["names"][gid][:args.n_genes_s]:
+                        with plt.rc_context():
+                            sq.pl.spatial_scatter(
+                                adata_s[adata_s.obs[batch]==gid],
+                                shape=None,
+                                color=gene,
+                                title=f"{gid} - {gene}"
+                            )
+                            plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.png"), bbox_inches="tight")
+                            if args.pdf:
+                                plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.pdf"), bbox_inches="tight")
+                        with plt.rc_context():
+                            sq.pl.spatial_scatter(
+                                adata_s[adata_s.obs[batch]==args.reference],
+                                shape=None,
+                                color=gene,
+                                title=f"{args.reference} - {gene}"
+                            )
+                            plt.savefig(Path(path_analysis_s, f"spatial_scatter_{args.reference}_{gene}.png"), bbox_inches="tight")
+                            if args.pdf:
+                                plt.savefig(Path(path_analysis_s, f"spatial_scatter_{args.reference}_{gene}.pdf"), bbox_inches="tight")    
 
         else: # DEA between conditions for all cells
+            # path_analysis = Path(path_analysis, 'compare')
+            # util.check_and_create_folder(path_analysis)
+
             sc.tl.rank_genes_groups(
                 adata, 
                 groupby, 
@@ -224,7 +240,7 @@ def main(argv=None):
                     adata, 
                     n_genes=args.n_genes, 
                     sharey=True,
-                    groups=groups if groups!='all' else None,
+                    groups=groups,
                     fontsize=13,
                 )
                 plt.savefig(Path(path_analysis, f"plot_genes_group_{args.reference}.png"), bbox_inches="tight")
@@ -235,7 +251,7 @@ def main(argv=None):
                 sc.pl.rank_genes_groups_dotplot(
                     adata, 
                     n_genes=args.n_genes, 
-                    groups=groups if groups!='all' else None,
+                    groups=groups,
                 )
                 plt.savefig(Path(path_analysis, f"dotplot_genes_group_{args.reference}.png"), bbox_inches="tight")
                 if args.pdf:
@@ -246,7 +262,33 @@ def main(argv=None):
                     Path(path_analysis, f'dea_group_{gid}_vs_{args.reference}.csv'), 
                     index=False,
                 )
+
+            for gid in groups:
+                for gene in adata.uns["rank_genes_groups"]["names"][gid][:args.n_genes_s]:
+                    with plt.rc_context():
+                        sq.pl.spatial_scatter(
+                            adata[adata.obs[batch]==gid],
+                            shape=None,
+                            color=gene,
+                            title=f"{gid} - {gene}"
+                        )
+                        plt.savefig(Path(path_analysis, f"spatial_scatter_{gid}_{gene}.png"), bbox_inches="tight")
+                        if args.pdf:
+                            plt.savefig(Path(path_analysis, f"spatial_scatter_{gid}_{gene}.pdf"), bbox_inches="tight")
+                    with plt.rc_context():
+                        sq.pl.spatial_scatter(
+                            adata[adata.obs[batch]==args.reference],
+                            shape=None,
+                            color=gene,
+                            title=f"{args.reference} - {gene}"
+                        )
+                        plt.savefig(Path(path_analysis, f"spatial_scatter_{args.reference}_{gene}.png"), bbox_inches="tight")
+                        if args.pdf:
+                            plt.savefig(Path(path_analysis, f"spatial_scatter_{args.reference}_{gene}.pdf"), bbox_inches="tight")    
+
     else: # one cluster vs rest for each sample/group
+        # path_analysis = Path(path_analysis, 'markers')
+        # util.check_and_create_folder(path_analysis)        
         for sid in sorted(adata.obs[batch].unique()):
             adata_s = adata[adata.obs[batch]==sid]   
             path_analysis_s = Path(path_analysis, f"{batch}_{sid}")
@@ -259,7 +301,7 @@ def main(argv=None):
                 adata_s, 
                 groupby, 
                 method=args.method, 
-                groups=groups, 
+                groups=groups if groups else 'all', 
                 reference=args.reference,
             )
             with plt.rc_context():
@@ -267,7 +309,7 @@ def main(argv=None):
                     adata_s, 
                     n_genes=args.n_genes, 
                     sharey=True,
-                    groups=groups if groups!='all' else None,
+                    groups=groups,
                     fontsize=13,
                 )
                 plt.savefig(Path(path_analysis_s, f"plot_genes_{groupby}.png"), bbox_inches="tight")
@@ -278,13 +320,13 @@ def main(argv=None):
                 sc.pl.rank_genes_groups_dotplot(
                     adata_s, 
                     n_genes=args.n_genes, 
-                    groups=groups if groups!='all' else None,
+                    groups=groups,
                 )
                 plt.savefig(Path(path_analysis_s, f"dotplot_genes_{groupby}.png"), bbox_inches="tight")
                 if args.pdf:
                     plt.savefig(Path(path_analysis_s, f"dotplot_genes_{groupby}.pdf"), bbox_inches="tight")
 
-            for gid in sorted(adata_s.obs[groupby].unique() if groups=='all' else groups):
+            for gid in sorted(groups if groups else adata_s.obs[groupby].unique()):
                 sc.get.rank_genes_groups_df(adata_s, group=gid).to_csv(
                     Path(path_analysis_s, f'dea_{groupby}_{gid}_vs_{args.reference}.csv'), 
                     index=False,
