@@ -115,7 +115,9 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 ### <u>DEA analysis</u>
 
 **Output directory: `results/dea`**
-- `adata_annotation.h5ad`: AnnData object file after cell-type annotation analysis.
+- `markers/`: subfolder for the identification of marker genes.
+- `compare/`: subfolder for the identification of differentially expressed genes between groups across all cells.
+- `compare_ct/`: subfolder for the identification of differentially expressed genes between groups across cell types.
 - `sample_*/` or `group_*/` or `celltype_*/` (no subfolder for DEA betweeen groups)
   - `plot_genes_*.png`: plots showing top number of DE genes across groups.
   - `dotplot_genes_*.png`: dot plot showing top number of DE genes across groups.
