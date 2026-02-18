@@ -96,6 +96,12 @@ def parse_args(argv=None):
         default=0,
     )
     parser.add_argument(
+        "--n_top_genes",
+        type=int,
+        help="Set the number of highly-variable genes for PCA.",
+        default=0,
+    )
+    parser.add_argument(
         "--meta",
         default='auto',
         choices=['auto', 'sample', 'group', 'plate'],
@@ -138,8 +144,9 @@ def main(argv=None):
 
     adata = sc.read_h5ad(args.h5ad)
 
-    # save the original counts 
-    adata.layers["counts"] = adata.X.copy()
+    # save the original counts
+    if "counts" not in adata.layers:
+        adata.layers["counts"] = adata.X.copy()
 
     # Normalization
     if args.normalize:
@@ -151,29 +158,34 @@ def main(argv=None):
     # remove doublets before clustering
     if not args.keep_doublets:
         if hasattr(adata.obs, 'predicted_doublet'):
-            adata = adata[~adata.obs['predicted_doublet']]
+            adata = adata[~adata.obs['predicted_doublet']].copy()
 
     batch_key = 'plate' if hasattr(adata.obs, 'plate') else 'sample' # correct on plates for smart-seq data
 
     # Feature selection and dimensionality reduction
-    sc.pp.highly_variable_genes(
-        adata,
-        flavor='seurat', 
-        min_mean=0.0125, 
-        max_mean=1000000000, 
-        min_disp=0.5, 
-        max_disp=50, 
-        n_bins=20, 
-        batch_key=batch_key
-    )
-    #sc.pp.highly_variable_genes(adata, n_top_genes=2000, batch_key="sample")
-
+    if args.n_top_genes > 0:
+        if adata.n_vars > args.n_top_genes:
+            sc.pp.highly_variable_genes(adata, n_top_genes=args.n_top_genes, batch_key=batch_key)
+    else:
+        sc.pp.highly_variable_genes(
+            adata,
+            flavor='seurat', 
+            min_mean=0.0125, 
+            max_mean=1000000000, 
+            min_disp=0.5, 
+            max_disp=50, 
+            n_bins=20, 
+            batch_key=batch_key
+        )
+    
     # save the raw counts
     #s adata.raw = adata
     #s adata = adata[:, adata.var.highly_variable]
 
     # Regress out effects of total counts per cell and the percentage of mitochondrial genes expressed
     if args.regress:
+        if "lognorm" not in adata.layers:
+            adata.layers["lognorm"] = adata.X.copy()
         if not(hasattr(adata.obs, 'total_counts') and hasattr(adata.obs, 'pct_counts_mt')):
             adata.var['mt'] = adata.var_names.str.startswith('MT-')
             sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], inplace=True, log1p=True)
@@ -182,6 +194,8 @@ def main(argv=None):
 
     # scale the expression to have zero mean and unit variance
     if args.scale:
+        if "lognorm" not in adata.layers:
+            adata.layers["lognorm"] = adata.X.copy()
         sc.pp.scale(adata, max_value=10)
 
     # Dimensionality reduction
@@ -199,9 +213,9 @@ def main(argv=None):
     if args.meta == 'auto':
         # batch = 'group' if hasattr(adata.obs, 'group') else 'sample'
         batch = 'sample'
-        if hasattr(adata.obs, 'group'):
+        if 'group' in adata.obs.columns:
             batch = 'group'
-        elif hasattr(adata.obs, 'plate'):
+        elif 'plate' in adata.obs.columns:
             batch = 'plate' 
     else:
         batch = args.meta
@@ -268,7 +282,7 @@ def main(argv=None):
 
 
     # save the AnnData into a h5ad file 
-    adata.write_h5ad(Path(path_clustering, 'adata_clustering.h5ad'))
+    adata.write_h5ad(Path(path_clustering, 'adata_clustering.h5ad'), compression="gzip")
 
     
     # sc.tl.leiden(adata, flavor="igraph", n_iterations=2, resolution=args.resolution)
@@ -314,6 +328,18 @@ def main(argv=None):
             if args.pdf:
                 plt.savefig(Path(path_res, f"prop_leiden_res_{res:4.2f}.pdf"), bbox_inches="tight")
 
+    # umap across samples
+    with plt.rc_context():
+        sc.pl.umap(
+            adata,
+            color="sample",
+            size=2,
+            show=False
+        )
+        plt.savefig(Path(path_clustering, 'umap_samples.png'), bbox_inches="tight")
+        if args.pdf:
+            plt.savefig(Path(path_clustering, 'umap_samples.pdf'), bbox_inches="tight")
+
 
     # save analysis parameters into a json file
     with open(Path(path_clustering, 'parameters.json'), 'w') as file:
@@ -325,6 +351,7 @@ def main(argv=None):
         if args.integrate: params.update({"--integrate": args.integrate})
         if args.min_cluster_size > 0: params.update({"--min_cluster_size": args.min_cluster_size})    
         if args.min_cluster_pct > 0: params.update({"--min_cluster_pct": args.min_cluster_pct})    
+        if args.n_top_genes > 0: params.update({"--n_top_genes": args.n_top_genes})    
         params.update({"--meta": args.meta})        
         if args.normalize: params.update({"--normalize": args.normalize})
         if args.regress: params.update({"--regress": args.regress})

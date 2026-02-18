@@ -118,6 +118,10 @@
                     "type": "string",
                     "description": "Flagged argument settings for the process of cell-type annotation analysis, e.g. '--model Immune_All_Low.pkl'."
                 }, 
+                "args_annotation_scvi": {
+                    "type": "string",
+                    "description": "Flagged argument settings for the process of cell-type annotation analysis with scvi-tools, e.g. '--h5ad_ref path-to-ref --label_key cellType --scvi_epochs 10 --batch_size 50 --scanvi_epochs 10'."
+                },
                 "args_trainctmodel": {
                     "type": "string",
                     "description": "Flagged argument settings for the process of training CellTypist models, e.g. '--feature_selection'."

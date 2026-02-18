@@ -53,7 +53,7 @@ def parse_args(argv=None):
     parser.add_argument(
         "--reference",
         default='rest',
-        help="If spcecify a group name, compare with respect to this group.",
+        help="If Specify a group name, compare with respect to this group.",
     )    
     parser.add_argument(
         "--method",
@@ -82,12 +82,12 @@ def parse_args(argv=None):
     parser.add_argument(
         "--celltype_col",
         default=None,
-        help="Spcecify a column used to define cell-types for DEA between groups.",
+        help="Specify a column used to define cell-types for DEA between groups.",
     )
     parser.add_argument(
         "--celltypes",
         default=None,
-        help="Spcecify a list cell-types for DEA between groups, e.g. 'celltype1,celltype2'.",
+        help="Specify a list cell-types for DEA between groups, e.g. 'celltype1,celltype2'.",
     )
     parser.add_argument(
         "--fontsize",
@@ -125,6 +125,8 @@ def main(argv=None):
     util.check_and_create_folder(path_analysis)
 
     adata = anndata.read_h5ad(args.h5ad)
+    if "lognorm" in adata.layers:
+        adata.X = adata.layers["lognorm"].copy()
 
     if not adata.uns.get('log1p'): # to fix issue in scanpy function
         adata.uns['log1p'] = {'base': None}
@@ -143,9 +145,9 @@ def main(argv=None):
     if args.meta == 'auto':
         # batch = 'group' if hasattr(adata.obs, 'group') else 'sample'
         batch = 'sample'
-        if hasattr(adata.obs, 'group'):
+        if 'group' in adata.obs.columns:
             batch = 'group'
-        elif hasattr(adata.obs, 'plate'):
+        elif 'plate' in adata.obs.columns:
             batch = 'plate'  
     else:
         batch = args.meta

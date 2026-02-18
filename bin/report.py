@@ -155,7 +155,8 @@ def main(argv=None):
     # path_cell_filtering_dist = Path(path_cell_filtering, 'distribution')
     path_clustering = Path(args.results, 'clustering')
     path_spatialstats = Path(args.results, 'spatialstats')
-    path_annotation = Path(args.results, 'annotation')
+    path_annotation = Path(args.results, 'annotation/celltypist')
+    path_annotation_scvi = Path(args.results, 'annotation/scvi')
     path_dea = Path(args.results, 'dea')
     path_cellchat = Path(args.results, 'cellchat')
 
@@ -301,28 +302,53 @@ def main(argv=None):
         logger.info('Skipping clustering analysis') 
 
 
-    if path_annotation.exists():
-        if util.check_file(f"{path_annotation}/sample_*", ''):
-            batch = 'sample'
-        elif util.check_file(f"{path_annotation}/group_*", ''):
-            batch = 'group'
-        Nbatch = len(samplesheet[batch].unique())
-        if Nbatch == 1: Nbatch = 2
+    if path_annotation.exists() or path_annotation_scvi.exists():
         with report.add_section('Cell-type annotation', 'Annotation'):
-            html.p(f"""This section presents cell-type annotation results using CellTypist which is an 
-            automated tool for cell type annotation based on pre-trained models, capable of accurately 
-            classifying different cell types and subtypes.""")
-            html.p("""The following UMAP plots show the predicted cell-type clusters and the mapped 
-            confidence scores of the cells.""")            
-            plots_from_image_files(path_annotation, suffix=['umap_cell_type.png'], meta=batch, widths=['1200'])
-            plots_from_image_files(path_annotation, suffix=['umap_conf_score.png'], meta=batch, widths=['600'])
-            html.p("""The following spatial scatter plot shows how cell-types are spatially mapped onto the tissue morphology.""") 
-            plots_from_image_files(path_annotation, suffix=['spatial_scatter_*.png'], meta=batch, widths=['1000'])
-            html.p(f"""The following plot shows a stacked bar chart that presents the proportions 
-                   of cell-type clusters across {batch}s. The plot illustrates the distribution 
-                   profiles of predicted cell-type clusters between {batch}s.""")                   
-            plots_from_image_files(path_annotation, suffix=['prop_*.png'], widths=[str(min(Nbatch*500, 1200))])
-            show_analysis_parameters(f"{path_annotation}/parameters.json")                 
+            if path_annotation.exists():
+                if util.check_file(f"{path_annotation}/sample_*", ''):
+                    batch = 'sample'
+                elif util.check_file(f"{path_annotation}/group_*", ''):
+                    batch = 'group'
+                Nbatch = len(samplesheet[batch].unique())
+                if Nbatch == 1: Nbatch = 2
+                html.p(f"""This section presents cell-type annotation results using CellTypist which is an 
+                automated tool for cell type annotation based on pre-trained models, capable of accurately 
+                classifying different cell types and subtypes.""")
+                html.p("""The following UMAP plots show the predicted cell-type clusters and the mapped 
+                confidence scores of the cells.""")            
+                plots_from_image_files(path_annotation, suffix=['umap_cell_type.png'], meta=batch, widths=['1200'])
+                plots_from_image_files(path_annotation, suffix=['umap_conf_score.png'], meta=batch, widths=['600'])
+                html.p("""The following spatial scatter plot shows how cell-types are spatially mapped onto the tissue morphology.""") 
+                plots_from_image_files(path_annotation, suffix=['spatial_scatter_*.png'], meta=batch, widths=['1000'])
+                html.p(f"""The following plot shows a stacked bar chart that presents the proportions 
+                    of cell-type clusters across {batch}s. The plot illustrates the distribution 
+                    profiles of predicted cell-type clusters between {batch}s.""")                   
+                plots_from_image_files(path_annotation, suffix=['prop_*.png'], widths=[str(min(Nbatch*500, 1200))])
+                show_analysis_parameters(f"{path_annotation}/parameters.json")
+                if path_annotation_scvi.exists(): html.hr(style="border: 1px solid grey;") 
+
+            if path_annotation_scvi.exists():
+                if util.check_file(f"{path_annotation_scvi}/sample_*", ''):
+                    batch = 'sample'
+                elif util.check_file(f"{path_annotation_scvi}/group_*", ''):
+                    batch = 'group'
+                Nbatch = len(samplesheet[batch].unique())
+                if Nbatch == 1: Nbatch = 2               
+                html.p(f"""This section presents cell-type annotation results using scvi-tools, which predicts the 
+                       cell types of the query dataset based on a scANVI model trained on the reference latent 
+                       space and transferred to the query data.""")
+                html.p("""The following UMAP plots show the predicted cell-type clusters and the mapped confidence scores 
+                       which are probabilities associated with that predicted cell types.""")            
+                plots_from_image_files(path_annotation_scvi, suffix=['umap_cell_type.png'], meta=batch, widths=['1200'])
+                plots_from_image_files(path_annotation_scvi, suffix=['umap_conf_score.png'], meta=batch, widths=['600'])
+                html.p("""The following spatial scatter plot shows how cell-types are spatially mapped onto the tissue morphology.""") 
+                plots_from_image_files(path_annotation_scvi, suffix=['spatial_scatter_all_*.png'], meta=batch, widths=['1000'])
+                plots_from_image_files(path_annotation_scvi, suffix=['spatial_scatter_label_*.png'], meta=batch, ncol=4)
+                html.p(f"""The following plot shows a stacked bar chart that presents the proportions 
+                    of cell-type clusters across {batch}s. The plot illustrates the distribution 
+                    profiles of predicted cell-type clusters between {batch}s.""")                   
+                plots_from_image_files(path_annotation_scvi, suffix=['prop_*.png'], widths=[str(min(Nbatch*500, 1200))])
+                show_analysis_parameters(f"{path_annotation_scvi}/parameters.json")                  
     else:
         logger.info('Skipping cell-type annotation')   
 

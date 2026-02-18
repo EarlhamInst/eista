@@ -84,7 +84,7 @@ class EILabsAddendum(Snippet):
                 h4('About this report', className="pb-3")
                 p(
                     "This report was produced using the ",
-                    code(f"TGAC/{workflow_name}"),
+                    code(f"EarlhamInst/{workflow_name}"),
                     f" nextflow workflow (v{workflow_version})."
                 )
                 p(

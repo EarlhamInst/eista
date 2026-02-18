@@ -96,7 +96,7 @@ def main(argv=None):
 
     # save the AnnData into a h5ad file
     if adata:
-        adata.write_h5ad(args.outfile)
+        adata.write_h5ad(args.outfile, compression="gzip")
         # adata.write_h5ad(Path(args.outdir, 'spatial_converted.h5ad'))
 
 

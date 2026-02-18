@@ -390,7 +390,9 @@ def main(argv=None):
     summary_filtered.to_csv(Path(path_cell_filtering, 'sample_summary_filtered.csv'), index=False)
 
     # combine all samples' anndata into one anndata
-    adata = anndata.concat(adatas, label="sample", index_unique="_", join="outer", merge="unique")
+    adata = anndata.concat(adatas, label="sample", index_unique=None, join="outer", merge="unique")
+    #adata = anndata.concat(adatas, label="sample", index_unique="_", join="outer", merge="unique")
+    adata.layers["counts"] = adata.X.copy()  # preserve raw counts
 
     # Normalization
     sc.pp.normalize_total(adata, target_sum=1e4)
@@ -460,7 +462,7 @@ def main(argv=None):
             adata.obs['sample'] = [sample2merge.get(x, x) for x in adata.obs['sample']]
 
     # save a filtered and normalized concated h5ad file
-    adata.write_h5ad(Path(path_quant_qc, f'adata_filtered_normalized.h5ad'))
+    adata.write_h5ad(Path(path_quant_qc, f'adata_filtered_normalized.h5ad'), compression="gzip")
 
     # save analysis parameters into a json file
     with open(Path(path_quant_qc, 'parameters.json'), 'w') as file:

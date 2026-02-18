@@ -25,6 +25,7 @@ include { QC_CELL_FILTER } from "../modules/local/qc_cell_filter"
 include { CLUSTERING_ANALYSIS } from "../modules/local/clustering_analysis"
 include { SPATIAL_STATISTICS } from "../modules/local/spatial_statistics"
 include { ANNOTATE_CELLS } from '../modules/local/annotate_cells'
+include { ANNOTATE_CELLS_SCVI } from '../modules/local/annotate_cells_scvi'
 include { TRAIN_CT_MODEL } from '../modules/local/train_ct_model'
 include { RANK_GENES } from '../modules/local/rank_genes'
 include { H5AD_TO_MTX_META } from '../modules/local/h5ad_to_mtx_meta'
@@ -128,7 +129,6 @@ workflow EISTA {
             def path1 = "${params.outdir}/vizgen/mtx_conversions/combined_st_matrix.h5ad"
             def path2 = "${params.outdir}/qc_cell_filter/adata_filtered_normalized.h5ad"
             def path3 = "${params.outdir}/clustering/adata_clustering.h5ad"
-            def file = new File(path)
             if (params.run_analyses.any{it=='secondary' || it=='qccellfilter'} && 
                 !params.skip_analyses.contains('qccellfilter') && new File(path1).exists()) {
                 ch_h5ad = Channel.fromPath(path1)
@@ -139,7 +139,7 @@ workflow EISTA {
                 !params.skip_analyses.contains('spatialstats') && new File(path3).exists()) {
                 ch_h5ad = Channel.fromPath(path3)
             }else{
-                log.warn("For this analysis, please specify an h5ad file either by setting --h5ad for an existing h5ad file.")
+                log.warn("No specified h5ad file found in previous analysis, please specify an h5ad file by setting --h5ad.")
                 return
             }
         }
@@ -174,7 +174,7 @@ workflow EISTA {
 
     //===================================== Tertiary anaysis stage =====================================
 
-    if (params.run_analyses.any{ it in ['tertiary', 'annotation', 'dea', 'cellchat'] }){
+    if (params.run_analyses.any{ it in ['tertiary', 'annotation', 'annotation_scvi', 'dea', 'cellchat'] }){
     
         // Get input h5ad file
         ch_h5ad = Channel.empty()
@@ -190,8 +190,15 @@ workflow EISTA {
             def path1 = "${params.outdir}/clustering/adata_clustering.h5ad"
             def path2 = "${params.outdir}/qc_cell_filter/adata_filtered_normalized.h5ad"
             def path3 = "${params.outdir}/annotation/adata_annotation.h5ad"
-            if(params.run_analyses.any{it in ['dea', 'cellchat']} && (new File(path3).exists())){
-                ch_h5ad = Channel.fromPath(path3)           
+            def path4 = "${params.outdir}/annotation_scvi/adata_annotation.h5ad"
+            if(params.run_analyses.any{it in ['dea', 'cellchat']}){
+                if(new File(path3).exists()){
+                    ch_h5ad = Channel.fromPath(path3)
+                }else if(new File(path4).exists()){
+                    ch_h5ad = Channel.fromPath(path4)
+                }else if(new File(path1).exists()){
+                    ch_h5ad = Channel.fromPath(path1)
+                }          
             }else if(new File(path1).exists()){
                 ch_h5ad = Channel.fromPath(path1)
             }else if(new File(path2).exists()){
@@ -199,7 +206,7 @@ workflow EISTA {
             }
         }
         ch_h5ad.ifEmpty {
-            log.warn("For this analysis, h5ad file can be found in secondary analysis, please specify an h5ad file by setting --h5ad.")
+            log.warn("No specified h5ad file found in secondary analysis, please specify an h5ad file by setting --h5ad.")
             return            
         }
 
@@ -215,6 +222,20 @@ workflow EISTA {
             ch_h5ad = ANNOTATE_CELLS.out.h5ad      
         }
         
+        if (params.run_analyses.any{it=='tertiary' || it=='annotation_scvi'} && 
+            !params.skip_analyses.contains('annotation_scvi') && params.args_annotation_scvi) {
+            // ch_h5ad_ref = params.h5ad_ref? Channel.fromPath(params.h5ad_ref) : []
+            ANNOTATE_CELLS_SCVI (
+                ch_h5ad,
+                // ch_h5ad_ref,
+                // ch_ctmodel
+                // MTX_CONVERSION.out.h5ad
+            )
+            // ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
+            ch_versions = ch_versions.mix(ANNOTATE_CELLS_SCVI.out.versions)
+            ch_h5ad = ANNOTATE_CELLS_SCVI.out.h5ad      
+        }
+
         if (params.run_analyses.any{it=='tertiary' || it=='dea'} and !params.skip_analyses.contains('dea')) {
             RANK_GENES (
                 ch_h5ad,

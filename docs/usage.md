@@ -142,6 +142,7 @@ Users can set the options for clustering analysis in the parameter `args_cluster
 | --integrate \<[bbknn, harmony, scanorama]> | Choose a method for data integration across samples. Currently three integration algorighms can be choosen: 'bbknn' - a fast and intuitive batch effect removal method focus on local structure; 'harmony' - a popular global correction approach that iteratively adjusts the embedding of cells in lower-dimensional space, which is effective at correcting large batch effects, especially in datasets with complex batch structures. Scanorama - an algorithm based on linear representation of the data, is good for larger, more complex datasets. (default=None) |
 | --min_cluster_size  \<int> | Specify the minimal cluster size for filtering out small and unstable clusters. (default=0) |
 | --min_cluster_pct  \<float> | Specify the minimal cluster percentage number for filtering out small and unstable clusters. (default=0) |
+| --n_top_genes  \<int> | Specify the number of highly-variable genes for PCA for PCA dimensionality reduction. (default=0) |
 | --meta  \<[auto, sample, group]> | Choose a metadata column as the batch classes on which the clustering UMAPs will be displayed. By default, it is set to 'auto', which means it will use the 'group' column as the batch classes if 'group' is defined in the samplesheet file; otherwise, it will use the 'sample' column. |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
@@ -182,6 +183,29 @@ Users can set the options for cell-type annotation analysis in the parameter `--
 For example, `--args_annotation "--model_file path-to-file/my_model.pkl"`
 
 
+## Cell-type annotation analysis with scvi-tools
+Users can set the options for cell-type annotation analysis with scvi-tools in the parameter `--args_annotation_scvi`, which are as follows. 
+| Options   | Description |
+| ----------- | ----------- |
+| --h5ad_ref  \<path> | Specify a reference anndata data file to generate scANVI model for annotation. |
+| --model_path  \<path> | Specify a directory containing scANVI model file and corresponding reference anndata file. |
+| --batch_key  \<string> | Specify a batch key for modelling reference data with scVI model. (default='sample')|
+| --label_key  \<string> | Specify a label key of cell types for reference data. (default=None)|
+| --n_top_genes  \<int> | Specify the number of highly-variable genes to keep. (default=2000)|
+| --scvi_epochs  \<int> | Specify the number of epochs for training scVI model. (default=None)|
+| --batch_size  \<int> | Specify the batch size for training scVI model. (default=None)|
+| --scanvi_epochs  \<int> | Specify the number of epochs for training scANVI model. (default=None)|
+| --n_samples_pl  \<int> | Specify the number of samples per label for training scANVI model. (default=None)|
+| --early_stop | An switch of whether to stop model training based on validation ELBO. (false by default)|
+| --min_label_pct  \<float> | Specify the minimal label percentage number for filtering out small and unstable labels. (default=0) |
+| --min_score  \<float> | Specify the minimal score for showing predicted labels in the proportion bar plot. (default=0) |
+| --meta  \<[auto, sample, group]> | Choose a metadata column as the batch classes on which the clustering UMAPs will be displayed. By default, it is set to 'auto', which means it will use the 'group' column as the batch classes if 'group' is defined in the samplesheet file; otherwise, it will use the 'sample' column. |
+| --fontsize  \<int> | Specify the font size for plots. (default=12) |
+| --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
+
+For example, `--args_annotation_scvi "--h5ad_ref ${h5ad_ref} --label_key cellType --scvi_epochs 10 --batch_size 50 --scanvi_epochs 10"`
+
+
 ## Training CellTypist models 
 Users can set the options for training CellTypist models in the parameter `--args_trainctmodel`, which are as follows. 
 | Options   | Description |
@@ -204,12 +228,12 @@ Users can set the options for differential analysis in the parameter `--args_dea
 | ----------- | ----------- |
 | --groupby  \<string> | Specify a column of the observation table to define groups. (default='leiden') |
 | --groups  \<string> | Specify a subset of groups, e.g. 'group1,group2'. By defualt, all groups are chosen. (default='all') |
-| --reference  \<string> | Users can spcecify a group name as reference, and all other groups will be comapred against with this group. By default each group will be compared against rest of groups. (default='rest') |
+| --reference  \<string> | Users can Specify a group name as reference, and all other groups will be comapred against with this group. By default each group will be compared against rest of groups. (default='rest') |
 | --method  \<['t-test', 'wilcoxon', 'logreg', 't-test_overestim_var']> | Choose a test method for differential expression anlaysis. The default method is 't-test', 't-test_overestim_var' overestimates variance of each group, 'wilcoxon' uses Wilcoxon rank-sum, 'logreg' uses logistic regression. (default='t-test')|
 | --n_genes  \<int> | Number of top marker genes to show in plots. (default=20) |
 | --n_genes_s  \<int> | Number of top marker genes to show in spatial scatter plots. (default=2) |
-| --celltype_col \<string> | Spcecify a column of the observation table to define cell-types, and DEA will be performed between groups for each cell-type. (default=None) |
-| --celltypes \<string> | Spcecify a subset of cell-types for DEA between groups, e.g. 'celltype1,celltype2'. By default all cell-types are used. (default=None) |
+| --celltype_col \<string> | Specify a column of the observation table to define cell-types, and DEA will be performed between groups for each cell-type. (default=None) |
+| --celltypes \<string> | Specify a subset of cell-types for DEA between groups, e.g. 'celltype1,celltype2'. By default all cell-types are used. (default=None) |
 | --meta  \<[auto, sample, group]> | Choose a metadata column as the batch classes on which the clustering UMAPs will be displayed. By default, it is set to 'auto', which means it will use the 'group' column as the batch classes if 'group' is defined in the samplesheet file; otherwise, it will use the 'sample' column. |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
