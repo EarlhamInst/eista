@@ -189,8 +189,8 @@ workflow EISTA {
         }else{
             def path1 = "${params.outdir}/clustering/adata_clustering.h5ad"
             def path2 = "${params.outdir}/qc_cell_filter/adata_filtered_normalized.h5ad"
-            def path3 = "${params.outdir}/annotation/adata_annotation.h5ad"
-            def path4 = "${params.outdir}/annotation_scvi/adata_annotation.h5ad"
+            def path3 = "${params.outdir}/annotation/celltypist/adata_annotation.h5ad"
+            def path4 = "${params.outdir}/annotation/scvi/adata_annotation.h5ad"
             if(params.run_analyses.any{it in ['dea', 'cellchat']}){
                 if(new File(path3).exists()){
                     ch_h5ad = Channel.fromPath(path3)

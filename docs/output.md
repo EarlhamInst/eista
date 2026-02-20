@@ -130,12 +130,12 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - `markers/`: subfolder for the identification of marker genes.
 - `compare/`: subfolder for the identification of differentially expressed genes between groups across all cells.
 - `compare_ct/`: subfolder for the identification of differentially expressed genes between groups across cell types.
-- `sample_*/` or `group_*/` or `celltype_*/` (no subfolder for DEA betweeen groups)
-  - `plot_genes_*.png`: plots showing top number of DE genes across groups.
-  - `dotplot_genes_*.png`: dot plot showing top number of DE genes across groups.
-  - `dea_*.csv`: a csv table file showing DEA results for all genes, e.g. log fold change, p-values.
-  - `spatial_scatter_*.png`: spatial scatter plots show top marker genes onto the tissue morphology.
-- `parameters.json`: a JSON file containing the parameter settings in the analysis.
+  - `sample_*/` or `group_*/` or `celltype_*/` (no subfolder for DEA betweeen groups)
+    - `plot_genes_*.png`: plots showing top number of DE genes across groups.
+    - `dotplot_genes_*.png`: dot plot showing top number of DE genes across groups.
+    - `dea_*.csv`: a csv table file showing DEA results for all genes, e.g. log fold change, p-values.
+    - `spatial_scatter_*.png`: spatial scatter plots show top marker genes onto the tissue morphology.
+  - `parameters.json`: a JSON file containing the parameter settings in the analysis.
 
 
 ### <u>CellChat analysis</u>
