@@ -188,7 +188,7 @@ def main(argv=None):
             plots_from_image_files(path_quant_qc_raw, meta='sample', ncol=3, suffix=['violin*.png'])
             html.p(f"""The following histogram plots display the distribution of cells based on the number of 
                    genes, total counts, and cell {cell_size_unit}s.""")
-            plots_from_image_files(path_quant_qc_raw, meta='sample', suffix=['histograms.png'])
+            plots_from_image_files(path_quant_qc_raw, meta='sample', suffix=['histograms*.png'])
     else:
         logger.info('Skipping Quantification QC')
 
@@ -207,7 +207,7 @@ def main(argv=None):
             plots_from_image_files(path_cell_filtering, meta='sample', ncol=3, suffix=['violin*.png'])            
             html.p(f"""The following histogram plots display the distribution of cells based on the number of 
                    genes, total counts, and cell {cell_size_unit}s.""")
-            plots_from_image_files(path_cell_filtering, meta='sample', suffix=['histograms.png'])
+            plots_from_image_files(path_cell_filtering, meta='sample', suffix=['histograms*.png'])
             # html.p("""The following plots show the UMAP plots for the number of genes, total counts.""")                        
             # plots_from_image_files(path_cell_filtering, meta='sample', suffix=['umap_total*.png'])
             html.p("""The following plots show the spatial scatter plots for the number of genes, total counts.""")                        

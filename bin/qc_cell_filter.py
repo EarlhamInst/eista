@@ -117,6 +117,30 @@ def parse_args(argv=None):
         default=2,
     )
     parser.add_argument(
+        "--iqr_volume",
+        type=float,
+        help="Remove outliers which larger than iqr_volume*IQR in cell volume.",
+        default=1.5,
+    )
+    parser.add_argument(
+        "--iqr_fov",
+        type=float,
+        help="Remove outliers which lower than iqr_fov*IQR in transcripts per cell per FOV.",
+        default=1.5,
+    )
+    parser.add_argument(
+        "--iqr_solidity",
+        type=float,
+        help="Remove outliers which lower than iqr_solidity*IQR in solidity.",
+        default=1.5,
+    )
+    parser.add_argument(
+        "--iqr_par",
+        type=float,
+        help="Remove outliers which larger than iqr_par*IQR in perimeter area ratio.",
+        default=1.5,
+    )
+    parser.add_argument(
         "--fontsize",
         type=int,
         help="Set font size for plots.",
@@ -283,12 +307,35 @@ def main(argv=None):
             sns.histplot(adata_s.obs["n_genes_by_counts"], kde=False, ax=axs[1])
             axs[2].set_title("Volume of segmented cells")
             sns.histplot(adata_s.obs["volume"], kde=False, ax=axs[2])
-            plt.savefig(Path(path_sample, f'histograms.png'), bbox_inches="tight")
+            plt.savefig(Path(path_sample, f'histograms_1.png'), bbox_inches="tight")
             if args.pdf:
-                plt.savefig(Path(path_sample, f'histograms.pdf'), bbox_inches="tight")
+                plt.savefig(Path(path_sample, f'histograms_1.pdf'), bbox_inches="tight")
+
+        fov_qc = (
+            adata_s.obs.groupby("fov").agg(
+                n_cells=("fov", "size"),
+                total_transcripts=("transcript_count", "sum"),
+                median_transcripts=("transcript_count", "median"),
+                mean_transcripts=("transcript_count", "mean"),
+            )
+        )
+        fov_qc["transcripts_per_cell"] = (fov_qc["total_transcripts"] / fov_qc["n_cells"])
+        with plt.rc_context():
+            fig, axs = plt.subplots(1, 3, figsize=(15, 4))
+            fig.subplots_adjust(wspace=0.3)
+            axs[0].set_title("Transcripts per cell per FOV")
+            sns.histplot(fov_qc["transcripts_per_cell"], kde=False, ax=axs[0])
+            axs[1].set_title("Segmentation solidity")
+            sns.histplot(adata_s.obs["solidity"], kde=False, ax=axs[1])
+            axs[2].set_title("Perimeter area ratio")
+            sns.histplot(adata_s.obs["perimeter_area_ratio"], kde=False, ax=axs[2])
+            plt.savefig(Path(path_sample, f'histograms_2.png'), bbox_inches="tight")
+            if args.pdf:
+                plt.savefig(Path(path_sample, f'histograms_2.pdf'), bbox_inches="tight")
 
 
-        # Cell filtering
+
+        # Cell filtering --------------------------------------------------------------------------
         min_genes_s = args.min_genes[s] if s < len(args.min_genes) else args.min_genes[-1]
         min_counts_s = args.min_counts[s] if s < len(args.min_counts) else args.min_counts[-1]
         min_cells_s = args.min_cells[s] if s < len(args.min_cells) else args.min_cells[-1]
@@ -311,16 +358,31 @@ def main(argv=None):
         sc.pp.calculate_qc_metrics(adata_s, inplace=True)
 
         if args.iqr_coef > 0:
-            q1 = np.percentile(adata_s.obs.total_counts.values, 25)
-            q3 = np.percentile(adata_s.obs.total_counts.values, 75)
-            upper_fence = q3 + args.iqr_coef*(q3 - q1)
+            # q1 = np.percentile(adata_s.obs.total_counts.values, 25)
+            # q3 = np.percentile(adata_s.obs.total_counts.values, 75)
+            # upper_fence = q3 + args.iqr_coef*(q3 - q1)
+            lower_fence, upper_fence = util.iqr_bounds(adata_s.obs["total_counts"], args.iqr_coef)
             sc.pp.filter_cells(adata_s, max_counts=upper_fence)
             sc.pp.calculate_qc_metrics(adata_s, inplace=True)
 
         if min_volume_s > 0:
             adata_s = adata_s[adata_s.obs.volume.values > min_volume_s]
         if max_volume_s > 0:
-            adata_s = adata_s[adata_s.obs.volume.values < max_volume_s]           
+            adata_s = adata_s[adata_s.obs.volume.values < max_volume_s]
+        if args.iqr_volume > 0:
+            lower_fence, upper_fence = util.iqr_bounds(adata_s.obs["volume"], args.iqr_volume)
+            adata_s = adata_s[adata_s.obs["volume"] <= upper_fence].copy()  
+
+        if args.iqr_fov > 0:
+            lower_fence, upper_fence = util.iqr_bounds(fov_qc["transcripts_per_cell"], args.iqr_solidity)
+            low_fov = fov_qc[fov_qc["transcripts_per_cell"] < lower_fence].index
+            adata_s = adata_s[~adata_s.obs["fov"].isin(low_fov)].copy()
+        if args.iqr_solidity > 0:
+            lower_fence, upper_fence = util.iqr_bounds(adata_s.obs["solidity"], args.iqr_solidity)
+            adata_s = adata_s[adata_s.obs["solidity"] >= lower_fence].copy()
+        if args.iqr_par > 0:
+            lower_fence, upper_fence = util.iqr_bounds(adata_s.obs["perimeter_area_ratio"], args.iqr_par)
+            adata_s = adata_s[adata_s.obs["perimeter_area_ratio"] <= upper_fence].copy()       
 
         if args.quantile_upper < 1:
             upper_lim = np.quantile(adata_s.obs.n_genes_by_counts.values, args.quantile_upper)
@@ -387,9 +449,31 @@ def main(argv=None):
             sns.histplot(adata_s.obs["n_genes_by_counts"], kde=False, ax=axs[1])
             axs[2].set_title("Volume of segmented cells")
             sns.histplot(adata_s.obs["volume"], kde=False, ax=axs[2])
-            plt.savefig(Path(path_sample, f'histograms.png'), bbox_inches="tight")
+            plt.savefig(Path(path_sample, f'histograms_1.png'), bbox_inches="tight")
             if args.pdf:
-                plt.savefig(Path(path_sample, f'histograms.pdf'), bbox_inches="tight")
+                plt.savefig(Path(path_sample, f'histograms_1.pdf'), bbox_inches="tight")
+
+        fov_qc = (
+            adata_s.obs.groupby("fov").agg(
+                n_cells=("fov", "size"),
+                total_transcripts=("transcript_count", "sum"),
+                median_transcripts=("transcript_count", "median"),
+                mean_transcripts=("transcript_count", "mean"),
+            )
+        )
+        fov_qc["transcripts_per_cell"] = (fov_qc["total_transcripts"] / fov_qc["n_cells"])
+        with plt.rc_context():
+            fig, axs = plt.subplots(1, 3, figsize=(15, 4))
+            fig.subplots_adjust(wspace=0.3)
+            axs[0].set_title("Transcripts per cell per FOV")
+            sns.histplot(fov_qc["transcripts_per_cell"], kde=False, ax=axs[0])
+            axs[1].set_title("Segmentation solidity")
+            sns.histplot(adata_s.obs["solidity"], kde=False, ax=axs[1])
+            axs[2].set_title("Perimeter_area_ratio")
+            sns.histplot(adata_s.obs["perimeter_area_ratio"], kde=False, ax=axs[2])
+            plt.savefig(Path(path_sample, f'histograms_2.png'), bbox_inches="tight")
+            if args.pdf:
+                plt.savefig(Path(path_sample, f'histograms_2.pdf'), bbox_inches="tight")
 
         adatas[sid] = adata_s
 
@@ -505,7 +589,11 @@ def main(argv=None):
         params.update({"--min_cells": args.min_cells})        
         if args.quantile_upper < 1: params.update({"--quantile_upper": args.quantile_upper})        
         if args.quantile_lower > 0: params.update({"--quantile_lower": args.quantile_lower})        
-        params.update({"--iqr_coef": args.iqr_coef})       
+        params.update({"--iqr_coef": args.iqr_coef})
+        if args.iqr_volume > 0: params.update({"--iqr_volume": args.iqr_volume})       
+        if args.iqr_fov > 0: params.update({"--iqr_fov": args.iqr_fov})       
+        if args.iqr_solidity > 0: params.update({"--iqr_solidity": args.iqr_solidity})       
+        if args.iqr_par > 0: params.update({"--iqr_par": args.iqr_par})       
         json.dump(params, file, indent=4)
 
 

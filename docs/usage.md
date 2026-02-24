@@ -122,6 +122,10 @@ Users can set the options for cell filtering in the parameter `--args_qccellfilt
 | --quantile_upper  \<float> | Filter genes by upper limit of quantile on number of genes. (default=1) |
 | --quantile_lower  \<float> | Filter genes by lower limit of quantile on number of genes. (default=0) |
 | --iqr_coef  \<int> | Remove outliers which larger than iqr_coef*IQR in total_counts. (default=2) |
+| --iqr_volume  \<int> | Remove outliers which lower than larger than iqr_volume*IQR in cell volume. (default=1.5) |
+| --iqr_fov  \<int> | Remove outliers which lower than iqr_fov*IQR in transcripts per cell per FOV. (default=1.5) |
+| --iqr_solidity  \<int> | Remove outliers which lower than iqr_solidity*IQR in solidity. (default=1.5) |
+| --iqr_par  \<int> | Remove outliers which larger than iqr_par*IQR in perimeter area ratio. (default=1.5) |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
 

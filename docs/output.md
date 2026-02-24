@@ -67,7 +67,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
     - `spatial_scatter_total_counts_genes.png`: spatial scatter plots for the number of genes, total counts.
     - `umap_total_counts_genes.png`: UMAP plots for the number of genes, total counts.
     - `violin*.png`: violin plots display the distribution of cells based on the number of genes, total counts, and cell volumes.
-    - `histograms.png`: histogram plots display the distribution of cells based on the number of genes, total counts, and cell volumes.
+    - `histograms_1.png`: histogram plots display the distribution of cells based on the number of genes, total counts, and cell volumes.
+    - `histograms_2.png`: histogram plots display the distribution of cells based on the transcripts per cell per FOV, segmentation solidity, and perimeter area ratio.
 - `parameters.json`: a JSON file containing the parameter settings in the analysis.
     
 

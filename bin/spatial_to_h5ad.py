@@ -60,7 +60,13 @@ def parse_args(argv=None):
         metavar="TRANSFORMATION_FILE",
         type=Path,
         help="The micron_to_mosaic_pixel_transform file.",
-    )          
+    )
+    parser.add_argument(
+        "--transcripts",
+        metavar="TRANSCRIPTS_FILE",
+        type=Path,
+        help="The detected transcripts file.",
+    )        
     return parser.parse_args(argv)
 
 
@@ -78,6 +84,10 @@ def main(argv=None):
             logger.error(f"The given input file {args.metadata} was not found!")
             sys.exit(2)
 
+        if args.transcripts and not args.transcripts.is_file():
+            logger.error(f"The given input file {args.transcripts} was not found!")
+            sys.exit(2)
+
         # transformation = Path(args.datadir, "images/micron_to_mosaic_pixel_transform.csv")
 
 
@@ -87,6 +97,19 @@ def main(argv=None):
             meta_file=str(args.metadata),
             transformation_file=str(args.transformation) if args.transformation.is_file() else None,
         )
+
+        transcripts = pd.read_csv(args.transcripts)
+        # remove background transcripts
+        transcripts = transcripts[transcripts["cell_id"] != -1]
+        cell_fov = (
+            transcripts.groupby("cell_id")["fov"].agg(lambda x: x.mode()[0])
+        )
+        cell_fov.index = cell_fov.index.astype(str)
+        # remove zero-transcript cells
+        adata = adata[adata.obs["transcript_count"] > 0].copy()
+        adata.obs["fov"] = adata.obs.index.map(cell_fov)
+        adata.obs["fov"] = adata.obs["fov"].astype(int)
+
     elif args.tech == 'xenium':
         from spatialdata_io import xenium
         xenium_path = args.datadir

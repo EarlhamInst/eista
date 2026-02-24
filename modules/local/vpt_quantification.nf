@@ -20,7 +20,7 @@ process VPT_QUANTIFICATION {
     path "updated_${vzg ? vzg.getName() : '.vzg'}", optional: true
     path  "versions.yml", emit: versions
     path "micron_to_mosaic_pixel_transform.csv"
-    tuple val(meta), path("cell_by_gene.csv"), path("cell_metadata.csv"), emit: datacountsmeta
+    tuple val(meta), path("cell_by_gene.csv"), path("cell_metadata.csv"), path("detected_transcripts.csv"), emit: datacountsmeta
 
     when:
     task.ext.when == null || task.ext.when

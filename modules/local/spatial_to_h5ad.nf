@@ -9,7 +9,7 @@ process SPATIAL_TO_H5AD {
 
     input:
     path outdir
-    tuple val(meta), path(counts), path(metadata)
+    tuple val(meta), path(counts), path(metadata), path(transcripts)
     // tuple val(meta), path(counts)
     // tuple val(meta), path(metadata)
 
@@ -39,6 +39,7 @@ process SPATIAL_TO_H5AD {
         --datadir ${datadir} \\
         --counts ${counts} \\
         --metadata ${metadata} \\
+        --transcripts ${transcripts} \\
         --transformation micron_to_mosaic_pixel_transform.csv \\
         --outfile "${meta.id}_st_matrix.h5ad" \\
         $args \\

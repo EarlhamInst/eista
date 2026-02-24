@@ -152,3 +152,13 @@ def check_and_install(package):
             sys.exit(1)
     else:
         print(f"Package '{package}' is already installed.")
+
+
+def iqr_bounds(series, k=1.5):
+    """get lower and upper cutoffs for input series based on IQR rule"""
+
+    Q1 = series.quantile(0.25)
+    Q3 = series.quantile(0.75)
+    IQR = Q3 - Q1
+    return Q1 - k*IQR, Q3 + k*IQR
+
