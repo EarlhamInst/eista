@@ -17,7 +17,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [Secondary analysis](#secondary-analysis)
   - [QC & cell filtering](#qc--cell-filtering) - Cell filtering and QC on raw data and filtered data
   - [Clustering analysis](#clustering-analysis) - Single-cell clustering analysis
-  - [Spatial statistics analysis](#spatial-statistics-analysis) - Single-cell spatial statistics analysis
+  - [Spatial statistical analysis](#spatial-statistics-analysis) - Single-cell spatial statistical analysis
 - Tertiary analysis
   - [Cell-type annotation analysis](#annotation-analysis) - Single-cell cell-type annotation analysis
   - [Cell-type annotation analysis with scvi-tools](#annotation-analysis) - Single-cell cell-type annotation analysis with scvi-tools
@@ -84,7 +84,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - `parameters.json`: a JSON file containing the parameter settings in the analysis.
 
 
-### <u>Spatial statistics analysis</u>
+### <u>Spatial statistical analysis</u>
 
 **Output directory: `results/spatialstats`**
 - `sample_*/` or `group_*/`

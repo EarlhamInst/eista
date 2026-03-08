@@ -70,7 +70,7 @@ The pipeline wutest has following parameters:
 | --genome \<string> | Name of iGenomes reference, e.g. `--genome GRCh38` |
 | --args_qccellfilter \<string> | Flagged argument settings for the process of Cell filtering and QC, e.g. "--min_genes 50 --min_cells 1" |
 | --args_clustering \<string> | Flagged argument settings for the process of clustering analysis, e.g. "--regress --scale" |
-| --args_spatialstats \<string> | Flagged argument settings for the process of spatial statistics analysis, e.g. "--cluster_keys leiden_res_0.50" |
+| --args_spatialstats \<string> | Flagged argument settings for the process of spatial statistical analysis, e.g. "--cluster_keys leiden_res_0.50" |
 | --args_annotation \<string> | Flagged argument settings for the process of cell-type annotation analysis, e.g. "--model Immune_All_Low.pkl" |
 | --save_reference \<true/false> | A Boolean option, if set true the pipeline will save all the intermediate output files apart from end results (true by default). |
 
@@ -88,7 +88,7 @@ The pipline has 3 analysis phases:
    - Cell filtering
    - Clustering analysis
    - Merging/integration of samples
-   - Spatial statistics analysis
+   - Spatial statistical analysis
 3. **tertiary phase** inculdes analyses:    
    - Cell type annotation
    - Differential expression analysis
@@ -122,7 +122,7 @@ Users can set the options for cell filtering in the parameter `--args_qccellfilt
 | --quantile_upper  \<float> | Filter genes by upper limit of quantile on number of genes. (default=1) |
 | --quantile_lower  \<float> | Filter genes by lower limit of quantile on number of genes. (default=0) |
 | --iqr_coef  \<int> | Remove outliers which larger than iqr_coef*IQR in total_counts. (default=2) |
-| --iqr_volume  \<int> | Remove outliers which lower than larger than iqr_volume*IQR in cell volume. (default=1.5) |
+| --iqr_volume  \<int> | Remove outliers which larger than iqr_volume*IQR in cell volume. (default=1.5) |
 | --iqr_fov  \<int> | Remove outliers which lower than iqr_fov*IQR in transcripts per cell per FOV. (default=1.5) |
 | --iqr_solidity  \<int> | Remove outliers which lower than iqr_solidity*IQR in solidity. (default=1.5) |
 | --iqr_par  \<int> | Remove outliers which larger than iqr_par*IQR in perimeter area ratio. (default=1.5) |
@@ -148,14 +148,16 @@ Users can set the options for clustering analysis in the parameter `args_cluster
 | --min_cluster_pct  \<float> | Specify the minimal cluster percentage number for filtering out small and unstable clusters. (default=0) |
 | --n_top_genes  \<int> | Specify the number of highly-variable genes for PCA for PCA dimensionality reduction. (default=0) |
 | --meta  \<[auto, sample, group]> | Choose a metadata column as the batch classes on which the clustering UMAPs will be displayed. By default, it is set to 'auto', which means it will use the 'group' column as the batch classes if 'group' is defined in the samplesheet file; otherwise, it will use the 'sample' column. |
+| --spatial_map \<float list> | Specify resolutions for spatial mapping of individual clusters; you can set a set of resolutions deliminated by ','. |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
 
 For example, `--args_clustering "--resolutions 0.1,0.2,0.3,0.5"`
+You can update the results without redoing the clustering by specifying a pre-generated AnnData file containing the clustering results. For instance, you can update the results when you want to filter out clusters or plot spatial maps for specific resolutions.
 
 
-## Spatial statistics analysis
-Users can set the options for spatial statistics analysis in the parameter `--args_spatialstats`, which are as follows. 
+## Spatial statistical analysis
+Users can set the options for spatial statistical analysis in the parameter `--args_spatialstats`, which are as follows. 
 | Options   | Description |
 | ----------- | ----------- |
 | --cluster_keys  \<string> | clusters/groups defined in anndata.AnnData.obs; you can set a set of clusters deliminated by ','. |
@@ -242,6 +244,7 @@ Users can set the options for differential analysis in the parameter `--args_dea
 | --n_genes_s  \<int> | Number of top marker genes to show in spatial scatter plots. (default=2) |
 | --celltype_col \<string> | Specify a column of the observation table to define cell-types, and DEA will be performed between groups for each cell-type. (default=None) |
 | --celltypes \<string> | Specify a subset of cell-types for DEA between groups, e.g. 'celltype1,celltype2'. By default all cell-types are used. (default=None) |
+| --combine | An switch of whether to combine all samples for marker gene identification. (false by default)|
 | --meta  \<[auto, sample, group]> | Choose a metadata column as the batch classes on which the clustering UMAPs will be displayed. By default, it is set to 'auto', which means it will use the 'group' column as the batch classes if 'group' is defined in the samplesheet file; otherwise, it will use the 'sample' column. |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
@@ -321,7 +324,7 @@ You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-c
 
 Users can run each analysis phase separately by specifying the parameter, e.g., `--analyses secondary`. If this parameter is used with the `--skip`, the specified analyses within the analysis phases will be skipped. 
 
-For example, the following command-line will run the pipeline for the secondary phase, skipping spatial statistics analysis, and performing only cell filtering with the option min_genes set to 20.
+For example, the following command-line will run the pipeline for the secondary phase, skipping spatial statistical analysis, and performing only cell filtering with the option min_genes set to 20.
 ```bash
 nextflow run TGAC/eista --analyses secondary -skip spatialstats --input samplesheet.csv --outdir results -profile --args_qccellfilter "--min_genes 20" 
 ```

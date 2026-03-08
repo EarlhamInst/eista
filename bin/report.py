@@ -204,9 +204,13 @@ def main(argv=None):
             DataTable.from_pandas(summary)
             html.p(f"""The following violin plots display the distribution of cells based on the number of 
                    genes, total counts, and cell {cell_size_unit}s after filtering.""")
-            plots_from_image_files(path_cell_filtering, meta='sample', ncol=3, suffix=['violin*.png'])            
+            plots_from_image_files(path_cell_filtering, meta='sample', ncol=3, suffix=['violin*.png'])
+            if cell_size_unit == 'volume':
+                txt_metrics = "cell volumes, transcripts per cell per FOV, solidity and perimeter area ratio"
+            else:
+                txt_metrics = "and cell areas"        
             html.p(f"""The following histogram plots display the distribution of cells based on the number of 
-                   genes, total counts, and cell {cell_size_unit}s.""")
+                   genes, total counts, {txt_metrics}.""")
             plots_from_image_files(path_cell_filtering, meta='sample', suffix=['histograms*.png'])
             # html.p("""The following plots show the UMAP plots for the number of genes, total counts.""")                        
             # plots_from_image_files(path_cell_filtering, meta='sample', suffix=['umap_total*.png'])
@@ -251,8 +255,8 @@ def main(argv=None):
             batch = 'group'
         Nbatch = len(samplesheet[batch].unique())
         # pd_autocorr = pd.read_csv(Path(path_spatialstats, 'autocorr_moranI.csv'))
-        with report.add_section('Spatial statistics analysis', 'Spatial-stats'):
-            html.p(f"""This section presents the spatial statistics analysis results for each {batch}. The statistics, 
+        with report.add_section('Spatial statistical analysis', 'Spatial-stats'):
+            html.p(f"""This section presents the spatial statistical analysis results for each {batch}. The statistics, 
                    computed using the Squidpy package, include centrality scores, neighborhood enrichment scores, 
                    and Moran’s I score. These statistics indicate the relationship between 
                    expression patterns and biological morphology.""")
@@ -355,6 +359,7 @@ def main(argv=None):
 
     if path_dea.exists():
         path_dea_markers = Path(path_dea, 'markers')
+        path_dea_markers_cb = Path(path_dea, 'markers_cb')
         path_dea_compare = Path(path_dea, 'compare')
         path_dea_compare_ct = Path(path_dea, 'compare_ct')
         with report.add_section('Differential expression analysis', 'DEA'):
@@ -374,6 +379,26 @@ def main(argv=None):
                     plots_from_image_files(path_dea_markers, meta=batch, suffix=['dotplot_genes_*.png'])
                     html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
                     plots_from_image_files(path_dea_markers, meta=batch, ncol=4, suffix=['spatial_scatter_*.png'])
+
+                show_analysis_parameters(f"{path_dea_markers}/parameters.json")
+                if path_dea_markers_cb.exists() or path_dea_compare.exists() or path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")
+
+            if path_dea_markers_cb.exists():
+                if util.check_file(f"{path_dea_markers_cb}/sample_*", ''):
+                    batch = 'sample'
+                elif util.check_file(f"{path_dea_markers_cb}/group_*", ''):
+                    batch = 'group'                
+                html.p("""This section presents the results of the differential expression analysis performed using 
+                        Scanpy’s rank_genes_groups function. These results enable the identification of marker genes 
+                        by comparing genes that are highly ranked in one cluster against all other clusters for combined data.""")
+
+                # showing plots for one cluster vs rest for each sample/group
+                html.p(f"""The following plots display the ranking of genes for one of the cell clusters against the rest of the clusters for combined data.""")                        
+                plots_from_image_files(path_dea_markers_cb, suffix=['plot_genes_*.png'])
+                plots_from_image_files(path_dea_markers_cb, suffix=['dotplot_genes_*.png'])
+                if util.check_file(f"{path_dea_markers_cb}/{batch}_*", '*.png'):
+                    html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
+                    plots_from_image_files(path_dea_markers_cb, meta=batch, ncol=4, suffix=['spatial_scatter_*.png'])
 
                 show_analysis_parameters(f"{path_dea_markers}/parameters.json")
                 if path_dea_compare.exists() or path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")

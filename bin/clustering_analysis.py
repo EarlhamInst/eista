@@ -102,6 +102,12 @@ def parse_args(argv=None):
         default=0,
     )
     parser.add_argument(
+        "--spatial_map",
+        type=util.floatlist,
+        help="Specify resolutions for spatial mapping of individual clusters.",
+        default=[],
+    )
+    parser.add_argument(
         "--meta",
         default='auto',
         choices=['auto', 'sample', 'group', 'plate'],
@@ -117,7 +123,7 @@ def parse_args(argv=None):
         "--pdf",
         help="Whether to generate figure files in PDF format.",
         action='store_true',
-    )                 
+    )               
     return parser.parse_args(argv)
 
 
@@ -144,118 +150,118 @@ def main(argv=None):
 
     adata = sc.read_h5ad(args.h5ad)
 
-    # save the original counts
-    if "counts" not in adata.layers:
-        adata.layers["counts"] = adata.X.copy()
-
-    # Normalization
-    if args.normalize:
-        sc.pp.normalize_total(adata, target_sum=1e4)
-        sc.pp.log1p(adata)
-    if not adata.uns.get('log1p'): # to fix issue in scanpy function
-        adata.uns['log1p'] = {'base': None}
-
-    # remove doublets before clustering
-    if not args.keep_doublets:
-        if hasattr(adata.obs, 'predicted_doublet'):
-            adata = adata[~adata.obs['predicted_doublet']].copy()
-
-    batch_key = 'plate' if hasattr(adata.obs, 'plate') else 'sample' # correct on plates for smart-seq data
-
-    # Feature selection and dimensionality reduction
-    if args.n_top_genes > 0:
-        if adata.n_vars > args.n_top_genes:
-            sc.pp.highly_variable_genes(adata, n_top_genes=args.n_top_genes, batch_key=batch_key)
-    else:
-        sc.pp.highly_variable_genes(
-            adata,
-            flavor='seurat', 
-            min_mean=0.0125, 
-            max_mean=1000000000, 
-            min_disp=0.5, 
-            max_disp=50, 
-            n_bins=20, 
-            batch_key=batch_key
-        )
-    
-    # save the raw counts
-    #s adata.raw = adata
-    #s adata = adata[:, adata.var.highly_variable]
-
-    # Regress out effects of total counts per cell and the percentage of mitochondrial genes expressed
-    if args.regress:
-        if "lognorm" not in adata.layers:
-            adata.layers["lognorm"] = adata.X.copy()
-        if not(hasattr(adata.obs, 'total_counts') and hasattr(adata.obs, 'pct_counts_mt')):
-            adata.var['mt'] = adata.var_names.str.startswith('MT-')
-            sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], inplace=True, log1p=True)
-            # sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)    
-        sc.pp.regress_out(adata, ['total_counts', 'pct_counts_mt'])
-
-    # scale the expression to have zero mean and unit variance
-    if args.scale:
-        if "lognorm" not in adata.layers:
-            adata.layers["lognorm"] = adata.X.copy()
-        sc.pp.scale(adata, max_value=10)
-
-    # Dimensionality reduction
-    # n_comps = min((min(adata.X.shape)-1), args.n_comps)
-    n_comps = min((min(adata.X[:, adata.var["highly_variable"].values].shape)-1), args.n_comps)
-    sc.tl.pca(
-        adata, 
-        n_comps=n_comps
-        # chunked=False,
-        # zero_center=False, 
-        # svd_solver='arpack'
-    )
-
     # perform data integration
+    batch = args.meta
     if args.meta == 'auto':
-        # batch = 'group' if hasattr(adata.obs, 'group') else 'sample'
-        batch = 'sample'
         if 'group' in adata.obs.columns:
             batch = 'group'
         elif 'plate' in adata.obs.columns:
-            batch = 'plate' 
-    else:
-        batch = args.meta
-    
-    n_pcs = adata.obsm['X_pca'].shape[1]
-    if args.integrate == 'bbknn':
-        sc.external.pp.bbknn(adata, batch_key=batch_key, n_pcs=n_pcs)
-    elif args.integrate == 'harmony':
-        mask = ~np.isnan(adata.obsm["X_pca"]).any(axis=1)
-        if not np.all(mask):
-            logger.warning(f"Removing {np.sum(~mask)} cells with NaN PCA embeddings before Harmony.")
-            adata = adata[mask].copy()
-        sc.external.pp.harmony_integrate(adata, batch_key)
-    elif args.integrate == 'scanorama':
-        sc.external.pp.scanorama_integrate(adata, batch_key)
-        
-    # find nearest neighbor graph constuction
-    pca_rep = 'X_pca'
-    if args.integrate == 'harmony':
-        pca_rep = 'X_pca_harmony'
-    elif args.integrate == 'scanorama':
-        pca_rep = 'X_scanorama'
-    if args.integrate != 'bbknn':
-        sc.pp.neighbors(
-            adata, 
-            n_neighbors=args.n_neighbors, 
-            n_pcs=n_pcs,
-            knn=True, 
-            method='umap', 
-            metric='euclidean',
-            use_rep=pca_rep
-        )
-    sc.tl.umap(adata)
+            batch = 'plate'
+        else: batch = 'sample'
 
-    # perform clustering using Leiden graph-clustering method
-    for res in args.resolutions:
-        sc.tl.leiden(
-            adata, n_iterations=2, 
-            key_added=f"leiden_res_{res:4.2f}", resolution=res
+
+    if not adata.obs.columns.str.startswith('leiden').any():
+        # save the original counts
+        if "counts" not in adata.layers:
+            adata.layers["counts"] = adata.X.copy()
+
+        # Normalization
+        if args.normalize:
+            sc.pp.normalize_total(adata, target_sum=1e4)
+            sc.pp.log1p(adata)
+        if not adata.uns.get('log1p'): # to fix issue in scanpy function
+            adata.uns['log1p'] = {'base': None}
+
+        # remove doublets before clustering
+        if not args.keep_doublets:
+            if hasattr(adata.obs, 'predicted_doublet'):
+                adata = adata[~adata.obs['predicted_doublet']].copy()
+
+        batch_key = 'plate' if hasattr(adata.obs, 'plate') else 'sample' # correct on plates for smart-seq data
+
+        # Feature selection and dimensionality reduction
+        if args.n_top_genes > 0:
+            if adata.n_vars > args.n_top_genes:
+                sc.pp.highly_variable_genes(adata, n_top_genes=args.n_top_genes, batch_key=batch_key)
+        else:
+            sc.pp.highly_variable_genes(
+                adata,
+                flavor='seurat', 
+                min_mean=0.0125, 
+                max_mean=1000000000, 
+                min_disp=0.5, 
+                max_disp=50, 
+                n_bins=20, 
+                batch_key=batch_key
+            )
+        
+        # save the raw counts
+        #s adata.raw = adata
+        #s adata = adata[:, adata.var.highly_variable]
+
+        # Regress out effects of total counts per cell and the percentage of mitochondrial genes expressed
+        if args.regress:
+            if "lognorm" not in adata.layers:
+                adata.layers["lognorm"] = adata.X.copy()
+            if not(hasattr(adata.obs, 'total_counts') and hasattr(adata.obs, 'pct_counts_mt')):
+                adata.var['mt'] = adata.var_names.str.startswith('MT-')
+                sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], inplace=True, log1p=True)
+                # sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)    
+            sc.pp.regress_out(adata, ['total_counts', 'volume'])
+
+        # scale the expression to have zero mean and unit variance
+        if args.scale:
+            if "lognorm" not in adata.layers:
+                adata.layers["lognorm"] = adata.X.copy()
+            sc.pp.scale(adata, max_value=10)
+
+        # Dimensionality reduction
+        # n_comps = min((min(adata.X.shape)-1), args.n_comps)
+        n_comps = min((min(adata.X[:, adata.var["highly_variable"].values].shape)-1), args.n_comps)
+        sc.tl.pca(
+            adata, 
+            n_comps=n_comps
+            # chunked=False,
+            # zero_center=False, 
+            # svd_solver='arpack'
         )
+        
+        n_pcs = adata.obsm['X_pca'].shape[1]
+        if args.integrate == 'bbknn':
+            sc.external.pp.bbknn(adata, batch_key=batch_key, n_pcs=n_pcs)
+        elif args.integrate == 'harmony':
+            mask = ~np.isnan(adata.obsm["X_pca"]).any(axis=1)
+            if not np.all(mask):
+                logger.warning(f"Removing {np.sum(~mask)} cells with NaN PCA embeddings before Harmony.")
+                adata = adata[mask].copy()
+            sc.external.pp.harmony_integrate(adata, batch_key)
+        elif args.integrate == 'scanorama':
+            sc.external.pp.scanorama_integrate(adata, batch_key)
+            
+        # find nearest neighbor graph constuction
+        pca_rep = 'X_pca'
+        if args.integrate == 'harmony':
+            pca_rep = 'X_pca_harmony'
+        elif args.integrate == 'scanorama':
+            pca_rep = 'X_scanorama'
+        if args.integrate != 'bbknn':
+            sc.pp.neighbors(
+                adata, 
+                n_neighbors=args.n_neighbors, 
+                n_pcs=n_pcs,
+                knn=True, 
+                method='umap', 
+                metric='euclidean',
+                use_rep=pca_rep
+            )
+        sc.tl.umap(adata)
+
+        # perform clustering using Leiden graph-clustering method
+        for res in args.resolutions:
+            sc.tl.leiden(
+                adata, n_iterations=2, 
+                key_added=f"leiden_res_{res:4.2f}", resolution=res
+            )
 
     # Filter Out Small Clusters
     if args.min_cluster_size > 0:
@@ -312,6 +318,42 @@ def main(argv=None):
                 plt.savefig(Path(path_clustering_s, f"spatial_scatter_leiden_res_{res:4.2f}.png"), bbox_inches="tight")
                 if args.pdf:
                     plt.savefig(Path(path_clustering_s, f"spatial_scatter_leiden_res_{res:4.2f}.pdf"), bbox_inches="tight")
+
+        for res in args.spatial_map:
+            # highlight one cluster per sample per resolution 
+            path_clustering_r = Path(path_clustering_s, f"spatial_map_res_{res:4.2f}")
+            util.check_and_create_folder(path_clustering_r)
+            for label in adata_s.obs[f"leiden_res_{res:4.2f}"].unique():
+                mask_hi = ((adata_s.obs[f"leiden_res_{res:4.2f}"] == label))
+                with plt.rc_context():
+                    fig, ax = plt.subplots()
+                    sq.pl.spatial_scatter(
+                        adata_s[~mask_hi],
+                        color=None,
+                        shape=None,
+                        size=1.5,
+                        ax=ax,
+                        title=None,
+                    )
+                    xlim = ax.get_xlim()
+                    ylim = ax.get_ylim()
+                    sq.pl.spatial_scatter(
+                        adata_s[mask_hi],
+                        color=None,
+                        shape=None,
+                        size=0.5,
+                        ax=ax,
+                        title=label,
+                    )
+                    ax.set_xlim(xlim)
+                    ax.set_ylim(ylim)
+                    ax.collections[0].set_color("darkblue")
+                    ax.collections[-1].set_color("#FFD700")
+
+                    plt.savefig(Path(path_clustering_r, f"spatial_map_label_{label}.png"), bbox_inches="tight")
+                    if args.pdf:
+                        plt.savefig(Path(path_clustering_r, f"spatial_map_label_{label}.pdf"), bbox_inches="tight")
+
     
     # stacked proportion bar plot showing all samples for each resolution      
     for res in args.resolutions:
@@ -356,6 +398,7 @@ def main(argv=None):
         if args.normalize: params.update({"--normalize": args.normalize})
         if args.regress: params.update({"--regress": args.regress})
         if args.scale: params.update({"--scale": args.scale})
+        if args.spatial_map: params.update({"--spatial_map": args.spatial_map})
         if args.keep_doublets: params.update({"--keep_doublets": args.keep_doublets})
         json.dump(params, file, indent=4)
 

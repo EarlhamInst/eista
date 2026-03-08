@@ -33,7 +33,7 @@ The modules of the pipeline are listed as follows:
   - QC & cell filtering - cell filtering and QC on raw data and filtered data
   - Clustering analysis - single-cell clustering analysis
   - Merging/integration of samples 
-  - Spatial statistics analysis - Neighbor enrichment analysis, calculating centrality scores and Moran's I score
+  - Spatial statistical analysis - Neighbor enrichment analysis, calculating centrality scores and Moran's I score
 - **Tertiary analysis**
   - Cell type annotation
   - Differential expression analysis

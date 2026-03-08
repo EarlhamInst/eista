@@ -112,7 +112,7 @@
                 },
                 "args_spatialstats": {
                     "type": "string",
-                    "description": "Flagged argument settings for the process of spatial statistics analysis."
+                    "description": "Flagged argument settings for the process of spatial statistical analysis."
                 },
                 "args_annotation": {
                     "type": "string",
