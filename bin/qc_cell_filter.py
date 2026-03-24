@@ -239,9 +239,10 @@ def main(argv=None):
         # # hemoglobin genes
         # adata_s.var["hb"] = adata_s.var_names.str.contains("^HB[^(P)]")
 
-        sc.pp.calculate_qc_metrics(
-            adata_s, percent_top=(50, 100, 200, 300), inplace=True, log1p=True
-        )
+        # sc.pp.calculate_qc_metrics(
+        #     adata_s, percent_top=(50, 100, 200, 300), inplace=True, log1p=True
+        # )
+        sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True, log1p=True)
 
         # create summary csv file for all samples
         n_cells_raw = adata_s.obs[adata_s.obs['n_genes_by_counts']>0].shape[0]
@@ -355,7 +356,7 @@ def main(argv=None):
         if max_genes_s > 0:
             sc.pp.filter_cells(adata_s, max_genes=max_genes_s)
 
-        sc.pp.calculate_qc_metrics(adata_s, inplace=True)
+        sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True)
 
         if args.iqr_coef > 0:
             # q1 = np.percentile(adata_s.obs.total_counts.values, 25)
@@ -363,7 +364,7 @@ def main(argv=None):
             # upper_fence = q3 + args.iqr_coef*(q3 - q1)
             lower_fence, upper_fence = util.iqr_bounds(adata_s.obs["total_counts"], args.iqr_coef)
             sc.pp.filter_cells(adata_s, max_counts=upper_fence)
-            sc.pp.calculate_qc_metrics(adata_s, inplace=True)
+            sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True)
 
         if min_volume_s > 0:
             adata_s = adata_s[adata_s.obs.volume.values > min_volume_s]

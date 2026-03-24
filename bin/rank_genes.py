@@ -165,9 +165,7 @@ def main(argv=None):
             groups.remove(args.reference)
 
         if args.celltype_col: # DEA between conditions for each celltype
-            celltypes = sorted(adata.obs[args.celltype_col].unique()) if args.celltypes==None else args.celltypes.split(',')
-            # path_analysis = Path(path_analysis, 'compare_ct')
-            # util.check_and_create_folder(path_analysis)
+            celltypes = args.celltypes.split(',') if args.celltypes else sorted(adata.obs[args.celltype_col].unique()) 
             for celltype in celltypes:
                 adata_s = adata[adata.obs[args.celltype_col]==celltype]   
                 path_analysis_s = Path(path_analysis, f"celltype_{celltype}".replace(' ', '_').replace('/', '_'))

@@ -153,7 +153,7 @@ Users can set the options for clustering analysis in the parameter `args_cluster
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
 
 For example, `--args_clustering "--resolutions 0.1,0.2,0.3,0.5"`
-You can update the results without redoing the clustering by specifying a pre-generated AnnData file containing the clustering results. For instance, you can update the results when you want to filter out clusters or plot spatial maps for specific resolutions.
+You can update the results without re-running clustering by specifying a pre-generated AnnData file containing clustering results. For example, this allows you to filter out small clusters or generate spatial maps at specific resolutions.
 
 
 ## Spatial statistical analysis
@@ -250,7 +250,8 @@ Users can set the options for differential analysis in the parameter `--args_dea
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
 
 For example:  
-`--args_dea "--groupby leiden_res_0.50"` - perform DEA to find marker genes for each cluster against the rest using clusters defined in column 'leiden_res_0.50' at group level if 'group' is defined in the samplesheet. Applying `--meta sample` to perform DEA at sample level.  
+`--args_dea "--groupby leiden_res_0.50"` - perform DEA to find marker genes for each cluster against the rest using clusters defined in column 'leiden_res_0.50' at group level if 'group' is defined in the samplesheet. Applying `--meta sample` to perform DEA at sample level.
+`--args_dea "--groupby leiden_res_0.50  --combine"` - perform DEA to find marker genes for each cluster against the rest using clusters defined in column 'leiden_res_0.50' for combined samples.  
 `--args_dea "--groupby group --reference control"` - perform DEA to find DE genes between each group against the group 'control', groups are defined in column 'group'.  
 `--args_dea "--groupby group --reference control --celltype_col majority_voting"` - same as above but for each cell-type defined in column 'majority_voting'.
 

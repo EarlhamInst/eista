@@ -79,6 +79,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - `sample_*/` or `group_*/`
   - `umap_leiden_res_*.png`: UMAP plots showing clustering results with differnt resoultuion settings.
   - `spatial_scatter_leiden_res_*.png`: spatial scatter plots for the corresponding resolutions of clustering.
+  - `spatial_map_res_*/`
+    - `spatial_map_label_*.png`: spatial scatter plots for individual clusters.
 - `resolution_*/`
   - `prop_leiden_res_*.png`: plot showing a stacked bar chart that presents the proportions of clusters across samples/groups.
 - `parameters.json`: a JSON file containing the parameter settings in the analysis.
@@ -128,14 +130,35 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 ### <u>DEA analysis</u>
 
 **Output directory: `results/dea`**
-- `markers/`: subfolder for the identification of marker genes.
-- `compare/`: subfolder for the identification of differentially expressed genes between groups across all cells.
-- `compare_ct/`: subfolder for the identification of differentially expressed genes between groups across cell types.
-  - `sample_*/` or `group_*/` or `celltype_*/` (no subfolder for DEA betweeen groups)
-    - `plot_genes_*.png`: plots showing top number of DE genes across groups.
-    - `dotplot_genes_*.png`: dot plot showing top number of DE genes across groups.
-    - `dea_*.csv`: a csv table file showing DEA results for all genes, e.g. log fold change, p-values.
-    - `spatial_scatter_*.png`: spatial scatter plots show top marker genes onto the tissue morphology.
+- `markers/`: subfolder for the identification of marker genes for each group.
+  - `group_*/`
+    - `plot_genes_*.png`: ranking plots showing the top differentially expressed (DE) genes.
+    - `dotplot_genes_*.png`: dot plots showing the top DE genes across groups.
+    - `dea_*.csv`: a CSV file containing DEA results for all genes, including log fold changes and p-values.
+    - `spatial_scatter_*.png`: spatial maps showing top marker genes overlaid on tissue morphology.
+  - `parameters.json`: a JSON file containing the parameter settings in the analysis.
+
+- `markers_cb/`: subfolder for the identification of marker genes for combined samples.
+  - `plot_genes_*.png`: ranking plots showing the top differentially expressed (DE) genes.
+  - `dotplot_genes_*.png`: dot plots showing the top DE genes across groups.
+  - `dea_*.csv`: a CSV file containing DEA results for all genes, including log fold changes and p-values.
+  - `parameters.json`: a JSON file containing the parameter settings in the analysis.
+  - `group_*/`
+    - `spatial_scatter_*.png`: spatial maps showing cluster cells overlaid on tissue morphology for each cluster.
+
+- `compare/`: subfolder for the identification of DE genes between groups across all cells.
+  - `plot_genes_group_*.png`: ranking plots showing the top differentially expressed (DE) genes between groups.
+  - `dotplot_genes_group_*.png`: dot plots showing the top DE genes across groups.
+  - `dea_group_*.csv`: a CSV file containing DEA results for all genes, including log fold changes and p-values.
+  - `spatial_scatter_*.png`: spatial maps showing top DE genes overlaid on tissue morphology.
+  - `parameters.json`: a JSON file containing the parameter settings in the analysis.
+
+- `compare_ct/`: subfolder for the identification of DE genes between groups for each cell type.
+  - `celltype_*/`
+    - `plot_genes_group_*.png`: ranking plots showing the top differentially expressed (DE) genes between groups.
+    - `dotplot_genes_group_*.png`: dot plots showing the top DE genes across groups.
+    - `dea_group_*.csv`: a CSV file containing DEA results for all genes, including log fold changes and p-values.
+    - `spatial_scatter_*.png`: spatial maps showing top DE genes overlaid on tissue morphology.
   - `parameters.json`: a JSON file containing the parameter settings in the analysis.
 
 
