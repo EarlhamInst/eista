@@ -126,6 +126,9 @@ Users can set the options for cell filtering in the parameter `--args_qccellfilt
 | --iqr_fov  \<int> | Remove outliers which lower than iqr_fov*IQR in transcripts per cell per FOV. (default=1.5) |
 | --iqr_solidity  \<int> | Remove outliers which lower than iqr_solidity*IQR in solidity. (default=1.5) |
 | --iqr_par  \<int> | Remove outliers which larger than iqr_par*IQR in perimeter area ratio. (default=1.5) |
+| --n_neighbors  \<int> | Specify the number of neighbors for nearest neighbor graph constuction. (default=15) |
+| --n_pcs  \<int> | Specify the number of PCA components for nearest neighbor graph constuction. (default=50) |
+| --subsample  \<int> | Subsample the specified number of cells for nearest neighbor graph constuction. (default=0) |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
 
