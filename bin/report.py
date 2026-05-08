@@ -225,10 +225,10 @@ def main(argv=None):
 
 
     if path_clustering.exists():
-        if util.check_file(f"{path_clustering}/sample_*", ''):
-            batch = 'sample'
-        elif util.check_file(f"{path_clustering}/group_*", ''):
+        if util.check_file(f"{path_clustering}/group_*", ''):
             batch = 'group'
+        elif util.check_file(f"{path_clustering}/sample_*", ''):
+            batch = 'sample'
         Nbatch = len(samplesheet[batch].unique())
         if Nbatch == 1: Nbatch = 2
         with report.add_section('Clustering analysis', 'Clustering'):
@@ -237,8 +237,8 @@ def main(argv=None):
                    was set for different values to get different number of clusters which 
                    could match to biologically-meaningful cell types.""")
             plots_from_image_files(path_clustering, meta=batch, ncol=2, suffix=['umap*.png'])
-            html.p("""The following plots show the spatial scatter plots for the corresponding resolutions.""")                        
-            plots_from_image_files(path_clustering, meta=batch, ncol=2, suffix=['spatial_scatter*.png'])
+            html.p("""The following plots show the spatial scatter plots for the corresponding resolutions per sample.""")                        
+            plots_from_image_files(path_clustering, meta='sample', ncol=2, suffix=['spatial_scatter*.png'])
             html.p(f"""The following plot shows a stacked bar chart that presents the proportions of clusters 
                    across {batch}s, calculated for each resolution value. The plot illustrates the distribution 
                    profiles of predicted clusters between {batch}s.""")                        

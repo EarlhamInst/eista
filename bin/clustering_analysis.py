@@ -256,11 +256,13 @@ def main(argv=None):
             )
         sc.tl.umap(adata)
 
-        # perform clustering using Leiden graph-clustering method
-        for res in args.resolutions:
+    # perform clustering using Leiden graph-clustering method
+    for res in args.resolutions:
+        leiden_key = f"leiden_res_{res:4.2f}"
+        if leiden_key not in adata.obs.columns:
             sc.tl.leiden(
                 adata, n_iterations=2, 
-                key_added=f"leiden_res_{res:4.2f}", resolution=res
+                key_added=leiden_key, resolution=res
             )
 
     # Filter Out Small Clusters
@@ -308,6 +310,12 @@ def main(argv=None):
                 if args.pdf:
                     plt.savefig(Path(path_clustering_s, f"umap_leiden_res_{res:4.2f}.pdf"), bbox_inches="tight")
 
+    # spatial scatter plots per sample
+    for sid in sorted(adata.obs['sample'].unique()):
+        adata_s = adata[adata.obs['sample']==sid]   
+        path_clustering_s = Path(path_clustering, f"{'sample'}_{sid}")
+        util.check_and_create_folder(path_clustering_s)
+        for res in args.resolutions:    
             with plt.rc_context():
                 sq.pl.spatial_scatter(
                     adata_s,

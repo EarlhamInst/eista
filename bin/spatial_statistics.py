@@ -88,8 +88,8 @@ def parse_args(argv=None):
     # )
     parser.add_argument(
         "--meta",
-        default='auto',
-        choices=['auto', 'sample', 'group', 'plate'],
+        default='sample',
+        choices=['auto', 'sample', 'group'],
         help="Choose a metadata column as the batch for clustering",
     )
     parser.add_argument(
@@ -136,8 +136,6 @@ def main(argv=None):
         batch = 'sample'
         if 'group' in adata.obs.columns:
             batch = 'group'
-        elif 'plate' in adata.obs.columns:
-            batch = 'plate' 
     else:
         batch = args.meta
     
