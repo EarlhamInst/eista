@@ -378,7 +378,7 @@ def main(argv=None):
         util.check_and_create_folder(path_annotation_s)
         n_cluster = len(adata_s.obs[label_type].unique())+1
         ncol = min((n_cluster//20 + min(n_cluster%20, 1)), 3)
-        with plt.rc_context({"figure.dpi": 100}):
+        with plt.rc_context({'figure.figsize': (8, 8)}):
             # sc.pl.umap(
             #     adata_s,
             #     color=label_type,
@@ -395,7 +395,7 @@ def main(argv=None):
                 width_px = bbox.width
                 if width_px > 500:
                     leg.remove()
-                    ax.legend(bbox_to_anchor=(0.5, -0.15), loc="upper center", ncol=min(ncol+1, 6))
+                    ax.legend(bbox_to_anchor=(0.5, -0.08), loc="upper center", ncol=min(ncol+1, 6))
 
             plt.savefig(Path(path_annotation_s, f"umap_cell_type.png"), bbox_inches="tight", dpi=150)    
             if args.pdf:
@@ -412,7 +412,12 @@ def main(argv=None):
             if args.pdf:
                 plt.savefig(Path(path_annotation_s, f"umap_conf_score.pdf"), bbox_inches="tight")          
 
-        with plt.rc_context({"figure.dpi": 100}):
+    # spatial scatter plots per sample
+    for sid in sorted(adata.obs['sample'].unique()):
+        adata_s = adata[adata.obs['sample']==sid]   
+        path_annotation_s = Path(path_annotation, f"{'sample'}_{sid}")
+        util.check_and_create_folder(path_annotation_s)
+        with plt.rc_context({'figure.figsize': (10, 10)}):
             ax = sq.pl.spatial_scatter(
                 adata_s,
                 shape=None,
@@ -420,6 +425,7 @@ def main(argv=None):
                 wspace=0.4,
                 return_ax=True
             )
+            ax.set_aspect("equal", adjustable="box")
             fig = ax.figure
             leg = ax.legend_
             if leg is not None:
@@ -427,7 +433,7 @@ def main(argv=None):
                 width_px = bbox.width
                 if width_px > 500:
                     leg.remove()
-                    ax.legend(bbox_to_anchor=(0.5, -0.2), loc="upper center", ncol=min(ncol+1, 6))
+                    ax.legend(bbox_to_anchor=(0.5, -0.08), loc="upper center", ncol=min(ncol+1, 6))
             plt.savefig(Path(path_annotation_s, f"spatial_scatter_all_labels.png"), bbox_inches="tight")
             if args.pdf:
                 plt.savefig(Path(path_annotation_s, f"spatial_scatter_all_labels.pdf"), bbox_inches="tight")

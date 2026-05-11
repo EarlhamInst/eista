@@ -309,10 +309,10 @@ def main(argv=None):
     if path_annotation.exists() or path_annotation_scvi.exists():
         with report.add_section('Cell-type annotation', 'Annotation'):
             if path_annotation.exists():
-                if util.check_file(f"{path_annotation}/sample_*", ''):
-                    batch = 'sample'
-                elif util.check_file(f"{path_annotation}/group_*", ''):
+                if util.check_file(f"{path_annotation}/group_*", ''):
                     batch = 'group'
+                elif util.check_file(f"{path_annotation}/sample_*", ''):
+                    batch = 'sample'
                 Nbatch = len(samplesheet[batch].unique())
                 if Nbatch == 1: Nbatch = 2
                 html.p(f"""This section presents cell-type annotation results using CellTypist which is an 
@@ -323,7 +323,7 @@ def main(argv=None):
                 plots_from_image_files(path_annotation, suffix=['umap_cell_type.png'], meta=batch, widths=['1200'])
                 plots_from_image_files(path_annotation, suffix=['umap_conf_score.png'], meta=batch, widths=['600'])
                 html.p("""The following spatial scatter plot shows how cell-types are spatially mapped onto the tissue morphology.""") 
-                plots_from_image_files(path_annotation, suffix=['spatial_scatter_*.png'], meta=batch, widths=['1000'])
+                plots_from_image_files(path_annotation, suffix=['spatial_scatter_*.png'], meta='sample', widths=['1000'])
                 html.p(f"""The following plot shows a stacked bar chart that presents the proportions 
                     of cell-type clusters across {batch}s. The plot illustrates the distribution 
                     profiles of predicted cell-type clusters between {batch}s.""")                   
@@ -332,10 +332,10 @@ def main(argv=None):
                 if path_annotation_scvi.exists(): html.hr(style="border: 1px solid grey;") 
 
             if path_annotation_scvi.exists():
-                if util.check_file(f"{path_annotation_scvi}/sample_*", ''):
-                    batch = 'sample'
-                elif util.check_file(f"{path_annotation_scvi}/group_*", ''):
+                if util.check_file(f"{path_annotation_scvi}/group_*", ''):
                     batch = 'group'
+                elif util.check_file(f"{path_annotation_scvi}/sample_*", ''):
+                    batch = 'sample'
                 Nbatch = len(samplesheet[batch].unique())
                 if Nbatch == 1: Nbatch = 2               
                 html.p(f"""This section presents cell-type annotation results using scvi-tools, which predicts the 
@@ -346,8 +346,8 @@ def main(argv=None):
                 plots_from_image_files(path_annotation_scvi, suffix=['umap_cell_type.png'], meta=batch, widths=['1200'])
                 plots_from_image_files(path_annotation_scvi, suffix=['umap_conf_score.png'], meta=batch, widths=['600'])
                 html.p("""The following spatial scatter plot shows how cell-types are spatially mapped onto the tissue morphology.""") 
-                plots_from_image_files(path_annotation_scvi, suffix=['spatial_scatter_all_*.png'], meta=batch, widths=['1000'])
-                plots_from_image_files(path_annotation_scvi, suffix=['spatial_scatter_label_*.png'], meta=batch, ncol=4)
+                plots_from_image_files(path_annotation_scvi, suffix=['spatial_scatter_all_*.png'], meta='sample', widths=['1000'])
+                plots_from_image_files(path_annotation_scvi, suffix=['spatial_scatter_label_*.png'], meta='sample', ncol=4)
                 html.p(f"""The following plot shows a stacked bar chart that presents the proportions 
                     of cell-type clusters across {batch}s. The plot illustrates the distribution 
                     profiles of predicted cell-type clusters between {batch}s.""")                   
@@ -400,7 +400,7 @@ def main(argv=None):
                     html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
                     plots_from_image_files(path_dea_markers_cb, meta=batch, ncol=4, suffix=['spatial_scatter_*.png'])
 
-                show_analysis_parameters(f"{path_dea_markers}/parameters.json")
+                show_analysis_parameters(f"{path_dea_markers_cb}/parameters.json")
                 if path_dea_compare.exists() or path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")
 
             if path_dea_compare.exists():       
@@ -417,7 +417,7 @@ def main(argv=None):
                     plots_from_image_files(path_dea_compare, suffix=['dotplot_genes_*.png'])
                     html.div(style="height: 50px;")
                     html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
-                    plots_from_image_files(path_dea_compare, ncol=4, suffix=['spatial_scatter_*.png'])
+                    plots_from_image_files(path_dea_compare, ncol=4, suffix=['spatial_scatter_*.png'], meta='sample')
 
                 show_analysis_parameters(f"{path_dea_compare}/parameters.json")
                 if path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")

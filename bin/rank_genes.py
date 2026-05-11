@@ -152,8 +152,6 @@ def main(argv=None):
         batch = 'sample'
         if 'group' in adata.obs.columns:
             batch = 'group'
-        elif 'plate' in adata.obs.columns:
-            batch = 'plate'  
     else:
         batch = args.meta
 
@@ -167,12 +165,12 @@ def main(argv=None):
         if args.celltype_col: # DEA between conditions for each celltype
             celltypes = args.celltypes.split(',') if args.celltypes else sorted(adata.obs[args.celltype_col].unique()) 
             for celltype in celltypes:
-                adata_s = adata[adata.obs[args.celltype_col]==celltype]   
-                path_analysis_s = Path(path_analysis, f"celltype_{celltype}".replace(' ', '_').replace('/', '_'))
-                util.check_and_create_folder(path_analysis_s)
+                adata_c = adata[adata.obs[args.celltype_col]==celltype]   
+                path_analysis_c = Path(path_analysis, f"celltype_{celltype}".replace(' ', '_').replace('/', '_'))
+                util.check_and_create_folder(path_analysis_c)
 
                 sc.tl.rank_genes_groups(
-                    adata_s, 
+                    adata_c, 
                     groupby, 
                     method=args.method, 
                     groups=groups, 
@@ -180,54 +178,59 @@ def main(argv=None):
                 )
                 with plt.rc_context():
                     sc.pl.rank_genes_groups(
-                        adata_s, 
+                        adata_c, 
                         n_genes=args.n_genes, 
                         sharey=True,
                         groups=groups,
                         fontsize=13,
                     )
-                    plt.savefig(Path(path_analysis_s, f"plot_genes_group_{args.reference}.png"), bbox_inches="tight")
+                    plt.savefig(Path(path_analysis_c, f"plot_genes_group_{args.reference}.png"), bbox_inches="tight")
                     if args.pdf:
-                        plt.savefig(Path(path_analysis_s, f"plot_genes_group_{args.reference}.pdf"), bbox_inches="tight")
+                        plt.savefig(Path(path_analysis_c, f"plot_genes_group_{args.reference}.pdf"), bbox_inches="tight")
 
                 with plt.rc_context():
                     sc.pl.rank_genes_groups_dotplot(
-                        adata_s, 
+                        adata_c, 
                         n_genes=args.n_genes, 
                         groups=groups,
                     )
-                    plt.savefig(Path(path_analysis_s, f"dotplot_genes_group_{args.reference}.png"), bbox_inches="tight")
+                    plt.savefig(Path(path_analysis_c, f"dotplot_genes_group_{args.reference}.png"), bbox_inches="tight")
                     if args.pdf:
-                        plt.savefig(Path(path_analysis_s, f"dotplot_genes_group_{args.reference}.pdf"), bbox_inches="tight")
+                        plt.savefig(Path(path_analysis_c, f"dotplot_genes_group_{args.reference}.pdf"), bbox_inches="tight")
 
                 for gid in groups:
-                    sc.get.rank_genes_groups_df(adata_s, group=gid).to_csv(
-                        Path(path_analysis_s, f'dea_group_{gid}_vs_{args.reference}.csv'), 
+                    sc.get.rank_genes_groups_df(adata_c, group=gid).to_csv(
+                        Path(path_analysis_c, f'dea_group_{gid}_vs_{args.reference}.csv'), 
                         index=False,
                     )
 
                 for gid in groups:
-                    for gene in adata_s.uns["rank_genes_groups"]["names"][gid][:args.n_genes_s]:
-                        with plt.rc_context():
-                            sq.pl.spatial_scatter(
-                                adata_s[adata_s.obs[batch]==gid],
-                                shape=None,
-                                color=gene,
-                                title=f"{gid} - {gene}"
-                            )
-                            plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.png"), bbox_inches="tight")
-                            if args.pdf:
-                                plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.pdf"), bbox_inches="tight")
-                        with plt.rc_context():
-                            sq.pl.spatial_scatter(
-                                adata_s[adata_s.obs[batch]==args.reference],
-                                shape=None,
-                                color=gene,
-                                title=f"{args.reference} - {gene}"
-                            )
-                            plt.savefig(Path(path_analysis_s, f"spatial_scatter_{args.reference}_{gene}.png"), bbox_inches="tight")
-                            if args.pdf:
-                                plt.savefig(Path(path_analysis_s, f"spatial_scatter_{args.reference}_{gene}.pdf"), bbox_inches="tight")    
+                    for gene in adata_c.uns["rank_genes_groups"]["names"][gid][:args.n_genes_s]:
+                        for sid in sorted(adata_c.obs['sample'].unique()):
+                            adata_s = adata_c[adata_c.obs['sample']==sid]   
+                            # path_analysis_s = Path(path_analysis_c, f"{'sample'}_{sid}")
+                            # util.check_and_create_folder(path_analysis_s)
+                            with plt.rc_context():
+                                sq.pl.spatial_scatter(
+                                    adata_s,
+                                    shape=None,
+                                    color=gene,
+                                    title=f"{gid} - {sid} - {gene}"
+                                )
+                                plt.savefig(Path(path_analysis_c, f"spatial_scatter_{gid}_{sid}_{gene}.png"), bbox_inches="tight")
+                                if args.pdf:
+                                    plt.savefig(Path(path_analysis_c, f"spatial_scatter_{gid}_{sid}_{gene}.pdf"), bbox_inches="tight")
+      
+                            # with plt.rc_context():
+                            #     sq.pl.spatial_scatter(
+                            #         adata_s[adata_s.obs[batch]==args.reference],
+                            #         shape=None,
+                            #         color=gene,
+                            #         title=f"{args.reference} - {gene}"
+                            #     )
+                            #     plt.savefig(Path(path_analysis_c, f"spatial_scatter_{args.reference}_{gene}.png"), bbox_inches="tight")
+                            #     if args.pdf:
+                            #         plt.savefig(Path(path_analysis_c, f"spatial_scatter_{args.reference}_{gene}.pdf"), bbox_inches="tight")    
 
         else: # DEA between conditions for all cells
             # path_analysis = Path(path_analysis, 'compare')
@@ -268,28 +271,39 @@ def main(argv=None):
                     index=False,
                 )
 
+            adata_r = adata[adata.obs[groupby]==args.reference]
             for gid in groups:
+                adata_g = adata[adata.obs[groupby]==gid]
                 for gene in adata.uns["rank_genes_groups"]["names"][gid][:args.n_genes_s]:
-                    with plt.rc_context():
-                        sq.pl.spatial_scatter(
-                            adata[adata.obs[batch]==gid],
-                            shape=None,
-                            color=gene,
-                            title=f"{gid} - {gene}"
-                        )
-                        plt.savefig(Path(path_analysis, f"spatial_scatter_{gid}_{gene}.png"), bbox_inches="tight")
-                        if args.pdf:
-                            plt.savefig(Path(path_analysis, f"spatial_scatter_{gid}_{gene}.pdf"), bbox_inches="tight")
-                    with plt.rc_context():
-                        sq.pl.spatial_scatter(
-                            adata[adata.obs[batch]==args.reference],
-                            shape=None,
-                            color=gene,
-                            title=f"{args.reference} - {gene}"
-                        )
-                        plt.savefig(Path(path_analysis, f"spatial_scatter_{args.reference}_{gene}.png"), bbox_inches="tight")
-                        if args.pdf:
-                            plt.savefig(Path(path_analysis, f"spatial_scatter_{args.reference}_{gene}.pdf"), bbox_inches="tight")    
+                    for sid in sorted(adata_g.obs['sample'].unique()):
+                        adata_s = adata_g[adata_g.obs['sample']==sid]
+                        path_analysis_s = Path(path_analysis, f"{'sample'}_{sid}")
+                        util.check_and_create_folder(path_analysis_s)
+                        with plt.rc_context():
+                            sq.pl.spatial_scatter(
+                                adata_s,
+                                shape=None,
+                                color=gene,
+                                title=f"{gid} - {gene}"
+                            )
+                            plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.png"), bbox_inches="tight")
+                            if args.pdf:
+                                plt.savefig(Path(path_analysis_s, f"spatial_scatter_{gid}_{gene}.pdf"), bbox_inches="tight")
+
+                    for sid in sorted(adata_r.obs['sample'].unique()):
+                        adata_s = adata_r[adata_r.obs['sample']==sid]
+                        path_analysis_s = Path(path_analysis, f"{'sample'}_{sid}")
+                        util.check_and_create_folder(path_analysis_s)
+                        with plt.rc_context():
+                            sq.pl.spatial_scatter(
+                                adata_s,
+                                shape=None,
+                                color=gene,
+                                title=f"{args.reference} - {gene}"
+                            )
+                            plt.savefig(Path(path_analysis_s, f"spatial_scatter_{args.reference}_{gene}.png"), bbox_inches="tight")
+                            if args.pdf:
+                                plt.savefig(Path(path_analysis_s, f"spatial_scatter_{args.reference}_{gene}.pdf"), bbox_inches="tight")    
 
     elif args.combine: #  one cluster vs rest for combined sample
         sc.tl.rank_genes_groups(
@@ -327,9 +341,9 @@ def main(argv=None):
                 index=False,
             )
 
-        for sid in sorted(adata.obs[batch].unique()):
-            adata_s = adata[adata.obs[batch]==sid]   
-            path_analysis_s = Path(path_analysis, f"{batch}_{sid}")
+        for sid in sorted(adata.obs['sample'].unique()):
+            adata_s = adata[adata.obs['sample']==sid]   
+            path_analysis_s = Path(path_analysis, f"{'sample'}_{sid}")
             util.check_and_create_folder(path_analysis_s)
             for gid in sorted(groups if groups else adata.obs[groupby].unique()):          
                 for gene in adata.uns["rank_genes_groups"]["names"][gid][:args.n_genes_s]:
