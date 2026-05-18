@@ -193,6 +193,11 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
+def get_percent_top(adata, default=[50, 100, 200, 500]):
+    percent_top = [x for x in default if x < adata.n_vars]
+    return percent_top if percent_top else None
+
+
 def main(argv=None):
 
     args = parse_args(argv)
@@ -260,7 +265,7 @@ def main(argv=None):
         # sc.pp.calculate_qc_metrics(
         #     adata_s, percent_top=(50, 100, 200, 300), inplace=True, log1p=True
         # )
-        sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True, log1p=True)
+        sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True, log1p=True, percent_top=get_percent_top(adata_s))
 
         # create summary csv file for all samples
         n_cells_raw = adata_s.obs[adata_s.obs['n_genes_by_counts']>0].shape[0]
@@ -374,7 +379,7 @@ def main(argv=None):
         if max_genes_s > 0:
             sc.pp.filter_cells(adata_s, max_genes=max_genes_s)
 
-        sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True)
+        sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True, percent_top=get_percent_top(adata_s))
 
         if args.iqr_coef > 0:
             # q1 = np.percentile(adata_s.obs.total_counts.values, 25)
@@ -382,7 +387,7 @@ def main(argv=None):
             # upper_fence = q3 + args.iqr_coef*(q3 - q1)
             lower_fence, upper_fence = util.iqr_bounds(adata_s.obs["total_counts"], args.iqr_coef)
             sc.pp.filter_cells(adata_s, max_counts=upper_fence)
-            sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True)
+            sc.pp.calculate_qc_metrics(adata_s, percent_top=[], inplace=True, percent_top=get_percent_top(adata_s))
 
         if min_volume_s > 0:
             adata_s = adata_s[adata_s.obs.volume.values > min_volume_s]

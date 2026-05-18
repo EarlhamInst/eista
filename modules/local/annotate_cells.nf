@@ -11,8 +11,8 @@ process ANNOTATE_CELLS {
     // path model_file
 
     output:
-    path "annotation/celltypist"
-    path "annotation/celltypist/*.h5ad",  emit: h5ad
+    path "annotation_celltypist"
+    path "annotation_celltypist/*.h5ad",  emit: h5ad
     path "versions.yml",  emit: versions
 
     when:
@@ -25,7 +25,7 @@ process ANNOTATE_CELLS {
     export HOME=$PWD
     annotate_cells.py \\
         --h5ad ${h5ad_filtered} \\
-        --outdir annotation/celltypist \\
+        --outdir annotation_celltypist \\
         $args \\
 
 
@@ -40,7 +40,7 @@ process ANNOTATE_CELLS {
     export HOME=$PWD
     annotate_cells.py \\
         --h5ad ${h5ad_filtered} \\
-        --outdir annotation/celltypist \\
+        --outdir annotation_celltypist \\
         $args \\
 
 

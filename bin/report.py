@@ -155,8 +155,8 @@ def main(argv=None):
     # path_cell_filtering_dist = Path(path_cell_filtering, 'distribution')
     path_clustering = Path(args.results, 'clustering')
     path_spatialstats = Path(args.results, 'spatialstats')
-    path_annotation = Path(args.results, 'annotation/celltypist')
-    path_annotation_scvi = Path(args.results, 'annotation/scvi')
+    path_annotation = Path(args.results, 'annotation_celltypist')
+    path_annotation_scvi = Path(args.results, 'annotation_scvi')
     path_dea = Path(args.results, 'dea')
     path_cellchat = Path(args.results, 'cellchat')
 
@@ -323,7 +323,8 @@ def main(argv=None):
                 plots_from_image_files(path_annotation, suffix=['umap_cell_type.png'], meta=batch, widths=['1200'])
                 plots_from_image_files(path_annotation, suffix=['umap_conf_score.png'], meta=batch, widths=['600'])
                 html.p("""The following spatial scatter plot shows how cell-types are spatially mapped onto the tissue morphology.""") 
-                plots_from_image_files(path_annotation, suffix=['spatial_scatter_*.png'], meta='sample', widths=['1000'])
+                plots_from_image_files(path_annotation, suffix=['spatial_scatter_all_*.png'], meta='sample', widths=['1000'])
+                plots_from_image_files(path_annotation, suffix=['spatial_scatter_label_*.png'], meta='sample', ncol=4)
                 html.p(f"""The following plot shows a stacked bar chart that presents the proportions 
                     of cell-type clusters across {batch}s. The plot illustrates the distribution 
                     profiles of predicted cell-type clusters between {batch}s.""")                   

@@ -231,9 +231,40 @@ def main(argv=None):
                     ax.legend(bbox_to_anchor=(0.5, -0.08), loc="upper center", ncol=min(ncol+1, 6))
                 #fig.tight_layout()
 
-            plt.savefig(Path(path_annotation_s, f"spatial_scatter_{label_type}.png"), bbox_inches="tight")
+            plt.savefig(Path(path_annotation_s, f"spatial_scatter_all_{label_type}.png"), bbox_inches="tight")
             if args.pdf:
-                plt.savefig(Path(path_annotation_s, f"spatial_scatter_{label_type}.pdf"), bbox_inches="tight")
+                plt.savefig(Path(path_annotation_s, f"spatial_scatter_all_{label_type}.pdf"), bbox_inches="tight")
+
+        for label in adata_s.obs[label_type].unique():
+            mask_hi = ((adata_s.obs[label_type] == label) & (adata_s.obs["conf_score"] > args.min_score))
+            with plt.rc_context():
+                fig, ax = plt.subplots()
+                sq.pl.spatial_scatter(
+                    adata_s[~mask_hi],
+                    color=None,
+                    shape=None,
+                    size=1.5,
+                    ax=ax,
+                    title=None,
+                )
+                xlim = ax.get_xlim()
+                ylim = ax.get_ylim()
+                sq.pl.spatial_scatter(
+                    adata_s[mask_hi],
+                    color=None,
+                    shape=None,
+                    size=0.5,
+                    ax=ax,
+                    title=label,
+                )
+                ax.set_xlim(xlim)
+                ax.set_ylim(ylim)
+                ax.collections[0].set_color("darkblue")
+                ax.collections[-1].set_color("#FFD700")
+                label = label.replace('/', '_')
+                plt.savefig(Path(path_annotation_s, f"spatial_scatter_label_{label}.png"), bbox_inches="tight")
+                if args.pdf:
+                    plt.savefig(Path(path_annotation_s, f"spatial_scatter_label_{label}.pdf"), bbox_inches="tight")                
 
     # stacked proportion bar plot to compare between batches
     if args.min_score > 0:

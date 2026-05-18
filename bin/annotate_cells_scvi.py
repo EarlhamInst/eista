@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import scipy.sparse as sp
 from matplotlib import pyplot as plt
+import matplotlib.colors as mcolors
 import argparse
 import sys, json
 from pathlib import Path
@@ -75,6 +76,12 @@ def parse_args(argv=None):
     #     help="The model class to be trained.",
     # )
     parser.add_argument(
+        "--subsample",
+        type=int,
+        help="Subsample number of cells to reduce computation time.",
+        default=0,
+    )
+    parser.add_argument(
         "--batch_key",
         default='sample',
         help="Specify a batch key for reference data.",
@@ -98,7 +105,7 @@ def parse_args(argv=None):
         "--n_top_genes",
         type=int,
         help="Set number of highly-variable genes to keep.",
-        default=2000,
+        default=None,
     )
     parser.add_argument(
         "--min_label_pct",
@@ -157,7 +164,7 @@ def parse_args(argv=None):
     parser.add_argument(
         "--meta",
         default='auto',
-        choices=['auto', 'sample', 'group', 'plate'],
+        choices=['auto', 'sample', 'group'],
         help="Choose a metadata column as the batch for clustering",
     )
     parser.add_argument(
@@ -203,6 +210,8 @@ def main(argv=None):
     torch.set_float32_matmul_precision("high")
 
     adata = sc.read_h5ad(args.h5ad)
+    if args.subsample > 0:
+        adata = sc.pp.subsample(adata, n_obs=args.subsample, copy=True)
     if "counts" in adata.layers:
         adata.X = adata.layers["counts"].copy()
     elif adata.raw is not None:
@@ -351,9 +360,7 @@ def main(argv=None):
         # batch = 'group' if hasattr(adata.obs, 'group') else 'sample'
         batch = 'sample'
         if 'group' in adata.obs.columns:
-            batch = 'group'
-        elif 'plate' in adata.obs.columns:
-            batch = 'plate'     
+            batch = 'group'    
     else:
         batch = args.meta
 
@@ -371,6 +378,11 @@ def main(argv=None):
         # is_in_small_cluster = adata.obs['scanvi_label'].isin(small_clusters)
         # keep_mask = keep_mask & (~is_in_small_cluster)
         # adata = adata[keep_mask].copy()
+
+    nlabel = len(adata.obs["scanvi_label"].cat.categories)
+    if nlabel > 50:
+        cmap = plt.get_cmap("gist_ncar").resampled(nlabel)
+        adata.uns["scanvi_label_colors"] = [mcolors.to_hex(c) for c in cmap(range(nlabel))]
 
     for sid in sorted(adata.obs[batch].unique()):
         adata_s = adata[adata.obs[batch]==sid]   
@@ -440,34 +452,35 @@ def main(argv=None):
 
         for label in adata_s.obs[label_type].unique():
             mask_hi = ((adata_s.obs[label_type] == label) & (adata_s.obs["scanvi_prob"] > args.min_score))
-            with plt.rc_context():
-                fig, ax = plt.subplots()
-                sq.pl.spatial_scatter(
-                    adata_s[~mask_hi],
-                    color=None,
-                    shape=None,
-                    size=1.5,
-                    ax=ax,
-                    title=None,
-                )
-                xlim = ax.get_xlim()
-                ylim = ax.get_ylim()
-                sq.pl.spatial_scatter(
-                    adata_s[mask_hi],
-                    color=None,
-                    shape=None,
-                    size=0.5,
-                    ax=ax,
-                    title=label,
-                )
-                ax.set_xlim(xlim)
-                ax.set_ylim(ylim)
-                ax.collections[0].set_color("darkblue")
-                ax.collections[-1].set_color("#FFD700")
-
-                plt.savefig(Path(path_annotation_s, f"spatial_scatter_label_{label}.png"), bbox_inches="tight")
-                if args.pdf:
-                    plt.savefig(Path(path_annotation_s, f"spatial_scatter_label_{label}.pdf"), bbox_inches="tight")
+            if any(mask_hi):
+                with plt.rc_context():
+                    fig, ax = plt.subplots()
+                    sq.pl.spatial_scatter(
+                        adata_s[~mask_hi],
+                        color=None,
+                        shape=None,
+                        size=1.5,
+                        ax=ax,
+                        title=None,
+                    )
+                    xlim = ax.get_xlim()
+                    ylim = ax.get_ylim()
+                    sq.pl.spatial_scatter(
+                        adata_s[mask_hi],
+                        color=None,
+                        shape=None,
+                        size=0.5,
+                        ax=ax,
+                        title=label,
+                    )
+                    ax.set_xlim(xlim)
+                    ax.set_ylim(ylim)
+                    ax.collections[0].set_color("darkblue")
+                    ax.collections[-1].set_color("#FFD700")
+                    label = label.replace('/', '_')
+                    plt.savefig(Path(path_annotation_s, f"spatial_scatter_label_{label}.png"), bbox_inches="tight")
+                    if args.pdf:
+                        plt.savefig(Path(path_annotation_s, f"spatial_scatter_label_{label}.pdf"), bbox_inches="tight")
 
     # stacked proportion bar plot to compare between batches
     if args.min_score > 0:

@@ -106,7 +106,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 ### <u>Annotation analysis</u>
 
-**Output directory: `results/annotation/celltypist`**
+**Output directory: `results/annotation_celltypist`**
 - `adata_annotation.h5ad`: AnnData object file after cell-type annotation analysis.
 - `sample_*/` or `group_*/`
   - `umap_cell_type.png`: UMAP plots showing predicted cell-type clusters.
@@ -116,7 +116,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - `parameters.json`: a JSON file containing the parameter settings in the analysis.
 
 
-**Output directory: `results/annotation/scvi`**
+**Output directory: `results/annotation_scvi`**
 - `adata_annotation.h5ad`: AnnData object file after cell-type annotation analysis.
 - `sample_*/` or `group_*/`
   - `umap_cell_type.png`: UMAP plots showing predicted cell-type clusters.
