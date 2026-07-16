@@ -363,6 +363,7 @@ def main(argv=None):
         path_dea_markers_cb = Path(path_dea, 'markers_cb')
         path_dea_compare = Path(path_dea, 'compare')
         path_dea_compare_ct = Path(path_dea, 'compare_ct')
+        path_dea_pydeseq2 = Path(path_dea, 'pydeseq2')
         with report.add_section('Differential expression analysis', 'DEA'):
             if path_dea_markers.exists():
                 if util.check_file(f"{path_dea_markers}/sample_*", ''):
@@ -382,7 +383,8 @@ def main(argv=None):
                     plots_from_image_files(path_dea_markers, meta=batch, ncol=4, suffix=['spatial_scatter_*.png'])
 
                 show_analysis_parameters(f"{path_dea_markers}/parameters.json")
-                if path_dea_markers_cb.exists() or path_dea_compare.exists() or path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")
+                if path_dea_markers_cb.exists() or path_dea_compare.exists() or path_dea_compare_ct.exists() or path_dea_pydeseq2.exists(): 
+                    html.hr(style="border: 1px solid grey;")
 
             if path_dea_markers_cb.exists():
                 if util.check_file(f"{path_dea_markers_cb}/sample_*", ''):
@@ -402,7 +404,8 @@ def main(argv=None):
                     plots_from_image_files(path_dea_markers_cb, meta=batch, ncol=4, suffix=['spatial_scatter_*.png'])
 
                 show_analysis_parameters(f"{path_dea_markers_cb}/parameters.json")
-                if path_dea_compare.exists() or path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")
+                if path_dea_compare.exists() or path_dea_compare_ct.exists() or path_dea_pydeseq2.exists(): 
+                    html.hr(style="border: 1px solid grey;")
 
             if path_dea_compare.exists():       
                 html.p("""This section presents the results of the differential expression analysis performed using 
@@ -421,7 +424,7 @@ def main(argv=None):
                     plots_from_image_files(path_dea_compare, ncol=4, suffix=['spatial_scatter_*.png'], meta='sample')
 
                 show_analysis_parameters(f"{path_dea_compare}/parameters.json")
-                if path_dea_compare_ct.exists(): html.hr(style="border: 1px solid grey;")
+                if path_dea_compare_ct.exists()  or path_dea_pydeseq2.exists(): html.hr(style="border: 1px solid grey;")
 
             if path_dea_compare_ct.exists():
                 if util.check_file(f"{path_dea_compare_ct}/sample_*", ''):
@@ -440,7 +443,29 @@ def main(argv=None):
                     html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
                     plots_from_image_files(path_dea_compare_ct, meta='celltype', ncol=4, suffix=['spatial_scatter_*.png'])
 
-                show_analysis_parameters(f"{path_dea_compare_ct}/parameters.json")              
+                show_analysis_parameters(f"{path_dea_compare_ct}/parameters.json")
+                if path_dea_pydeseq2.exists(): html.hr(style="border: 1px solid grey;")
+                   
+            if path_dea_pydeseq2.exists():       
+                html.p("""This section presents the results of the differential expression analysis performed using 
+                        PyDeseq2. The analysis identifies differentially expressed genes by aggregating cells into pseudobulk 
+                       samples and comparing one group of biological samples against another.""")
+
+                # showing plots for DEA between conditions for all cells
+                if util.check_file(f"{path_dea_pydeseq2}", '*.png'):
+                    html.p("""The following plots show the ranking of differentially expressed genes of one group of 
+                            cells against another.""")                        
+                    plots_from_image_files(path_dea_pydeseq2, ncol=2, suffix=['plot_genes_*.png'])
+                    html.div(style="height: 50px;")
+                    plots_from_image_files(path_dea_pydeseq2, ncol=3, suffix=['dotplot_genes_*.png'])
+                    html.div(style="height: 50px;")
+                    html.p("""The following volcano plots provide an overview of the differential expression results.""")
+                    plots_from_image_files(path_dea_pydeseq2, ncol=2, suffix=['volcano_*.png'])
+                    html.div(style="height: 50px;")
+                    html.p("""The following spatial scatter plots show top marker genes onto the tissue morphology.""")
+                    plots_from_image_files(path_dea_pydeseq2, ncol=4, suffix=['spatial_scatter_*.png'], meta='sample')
+
+                show_analysis_parameters(f"{path_dea_pydeseq2}/parameters.json")
     else:
         logger.info('Skipping differential expression analysis')
 

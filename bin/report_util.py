@@ -41,7 +41,7 @@ class EIBanner(Snippet):
                     return
                 h1(report_title)
                 p(
-                    f"Results generated through the {workflow_name} nextflow "
+                    f"Results generated through the {workflow_name.upper()} nextflow "
                     "workflow developed by Earlham Institute.",
                     className="py-3 fs-5")
                 self.badges = div(className="d-flex flex-wrap")
@@ -118,7 +118,7 @@ def plots_from_image_files(path, meta=None, ncol=1, suffix=['*.png'], widths=Non
                     Np = len(pathes)
                     widths = (widths*(Np//len(widths)+1))[0:Np]
                     for i in [r*ncol for r in range(Np//ncol+Np%ncol)]:
-                        with Grid(columns=ncol):
+                        with Grid(columns=ncol if Np//ncol>0 else Np):
                             pathes_r = [pathes[i+s] for s in range(ncol) if i+s < Np]
                             widths_r = [widths[i+s] for s in range(ncol) if i+s < Np]
                             for img_path, width in zip(pathes_r, widths_r):
@@ -135,7 +135,7 @@ def plots_from_image_files(path, meta=None, ncol=1, suffix=['*.png'], widths=Non
         Np = len(pathes)
         widths = (widths*(Np//len(widths)+1))[0:Np]
         for i in [r*ncol for r in range(Np//ncol+Np%ncol)]:        
-            with Grid(columns=ncol):
+            with Grid(columns=ncol if Np//ncol>0 else Np):
                 pathes_r = [pathes[i+s] for s in range(ncol) if i+s < Np]
                 widths_r = [widths[i+s] for s in range(ncol) if i+s < Np]
                 for img_path, width in zip(pathes_r, widths_r):

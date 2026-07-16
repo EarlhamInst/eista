@@ -38,6 +38,7 @@ squidpy,1.6.1
 anndata,0.10.5.post1
 celltypist,1.6.3
 cellchat,2.1.2
+PyDESeq2,0.5.2
 EOF
 
     report.py \\

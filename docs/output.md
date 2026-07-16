@@ -161,6 +161,13 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
     - `spatial_scatter_*.png`: spatial maps showing top DE genes overlaid on tissue morphology.
   - `parameters.json`: a JSON file containing the parameter settings in the analysis.
 
+- `pydeseq2/`: subfolder for the identification of DE genes between groups across pseudobulk samples.
+  - `plot_genes_*.png`: ranking plots showing the top differentially expressed (DE) genes between groups.
+  - `dotplot_genes_*.png`: dot plots showing the top DE genes across groups.
+  - `pydeseq2_*.csv`: a CSV file containing DEA results for all genes, including log fold changes and p-values.
+  - `spatial_scatter_*.png`: spatial maps showing top DE genes overlaid on tissue morphology.
+  - `parameters.json`: a JSON file containing the parameter settings in the analysis.
+
 
 ### <u>CellChat analysis</u>
 

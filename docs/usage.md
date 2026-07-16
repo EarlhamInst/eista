@@ -248,6 +248,7 @@ Users can set the options for differential analysis in the parameter `--args_dea
 | --celltype_col \<string> | Specify a column of the observation table to define cell-types, and DEA will be performed between groups for each cell-type. (default=None) |
 | --celltypes \<string> | Specify a subset of cell-types for DEA between groups, e.g. 'celltype1,celltype2'. By default all cell-types are used. (default=None) |
 | --combine | An switch of whether to combine all samples for marker gene identification. (false by default)|
+| --deseq2 | An switch of whether to apply PyDESeq2 for pseudobulk differential expression analysis between groups. (false by default)|
 | --meta  \<[auto, sample, group]> | Choose a metadata column as the batch classes on which the clustering UMAPs will be displayed. By default, it is set to 'auto', which means it will use the 'group' column as the batch classes if 'group' is defined in the samplesheet file; otherwise, it will use the 'sample' column. |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
@@ -257,6 +258,7 @@ For example:
 `--args_dea "--groupby leiden_res_0.50  --combine"` - perform DEA to find marker genes for each cluster against the rest using clusters defined in column 'leiden_res_0.50' for combined samples.  
 `--args_dea "--groupby group --reference control"` - perform DEA to find DE genes between each group against the group 'control', groups are defined in column 'group'.  
 `--args_dea "--groupby group --reference control --celltype_col majority_voting"` - same as above but for each cell-type defined in column 'majority_voting'.
+`--args_dea "--deseq2 --groupby group --reference control"` - perform DEA to find DE genes between each group against the group 'control' using PyDESeq2.  
 
 
 ## Cell-cell communication analysis
