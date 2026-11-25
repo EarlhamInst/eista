@@ -249,6 +249,7 @@ Users can set the options for differential analysis in the parameter `--args_dea
 | --celltypes \<string> | Specify a subset of cell-types for DEA between groups, e.g. 'celltype1,celltype2'. By default all cell-types are used. (default=None) |
 | --combine | An switch of whether to combine all samples for marker gene identification. (false by default)|
 | --deseq2 | An switch of whether to apply PyDESeq2 for pseudobulk differential expression analysis between groups. (false by default)|
+| --pseudobulk_key \<string> | Observation column used to aggregate cells into pseudobulk replicates for PyDESeq2, e.g. 'sample'  (sample-level) or 'donor' (donor-level). Each value must belong to exactly one group in --groupby. (default=sample) |
 | --meta  \<[auto, sample, group]> | Choose a metadata column as the batch classes on which the clustering UMAPs will be displayed. By default, it is set to 'auto', which means it will use the 'group' column as the batch classes if 'group' is defined in the samplesheet file; otherwise, it will use the 'sample' column. |
 | --fontsize  \<int> | Specify the font size for plots. (default=12) |
 | --pdf | An switch of whether to generate figure files in PDF format. (false by default)|
